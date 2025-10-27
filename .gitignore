@@ -1,0 +1,33 @@
+# LENOVO HR DATABASE PROJECT
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Virtual Environment
+myenv/
+venv/
+env/
+.venv/
+data/
+
+# Environment Variables (KEEP .env.example for reference)
+.env
+
+# IDE
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Database dumps
+*.sql
+*.db
