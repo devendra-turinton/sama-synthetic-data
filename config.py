@@ -23,7 +23,6 @@ DB_CONFIG = {
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data")
 OUTPUT_DIR = os.path.join(DATA_DIR, "output")
-REFERENCE_DATA_DIR = os.path.join(DATA_DIR, "reference")
 
 # Kargil War Historical Timeline
 KARGIL_SCENARIO = {
@@ -198,4 +197,3 @@ DAILY_TIME_SLOTS = [
 
 # Ensure output directories exist
 os.makedirs(OUTPUT_DIR, exist_ok=True)
-os.makedirs(REFERENCE_DATA_DIR, exist_ok=True)
