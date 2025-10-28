@@ -164,18 +164,18 @@ class ReferenceDataGenerator:
         
         prompt = """
         Generate a comprehensive military incident classification hierarchy for an intelligence system.
-        
+
         The classification should include three levels:
         1. incident_type (main categories)
         2. incident_sub_type (subcategories under each type)
         3. incident_classification (specific classifications under each sub-type)
-        
+
         Each classification should include:
         - id: A unique identifier (integer)
         - name: Descriptive name of the category
         - description: Detailed explanation
         - img_path: A placeholder path to a symbol (format: /symbols/incident/{type}/{subtype}/{classification}.svg)
-        
+
         The incidents should cover all potential military incidents relevant to border monitoring, including:
         - Border violations (incursions, crossings, etc.)
         - Ceasefire violations (different types of firing incidents)
@@ -183,7 +183,7 @@ class ReferenceDataGenerator:
         - Intelligence activities (reconnaissance, surveillance, etc.)
         - Construction incidents (infrastructure development)
         - Force posturing (exercises, deployments, etc.)
-        
+
         Format the response as a JSON object with this structure:
         {
           "incident_types": [
@@ -204,20 +204,27 @@ class ReferenceDataGenerator:
                       "name": "ARMED_INCURSION",
                       "description": "Armed troops crossing the border",
                       "img_path": "/symbols/incident/border_violation/troop_incursion/armed.svg"
-                    },
-                    // More classifications...
+                    }
                   ]
-                },
-                // More sub-types...
+                }
               ]
-            },
-            // More incident types...
+            }
           ]
         }
-        
+
         INCLUDE INCIDENTS SPECIFIC TO BOTH INDIA-PAKISTAN AND INDIA-CHINA BORDERS.
         CREATE AT LEAST 5 INCIDENT TYPES, WITH AT LEAST 3 SUB-TYPES EACH, AND AT LEAST 2 CLASSIFICATIONS PER SUB-TYPE.
-        ONLY RETURN THE JSON OBJECT WITH NO ADDITIONAL TEXT OR EXPLANATIONS.
+
+        STRICTLY FOLLOW THESE RULES FOR THE JSON OUTPUT:
+        - Only return the raw JSON object, no comments, no explanations, no markdown, no code blocks.
+        - The JSON must be minified (no extra whitespace or indentation).
+        - Do not include any trailing commas, comments, or omitted punctuation.
+        - Double-check that all brackets, braces, and commas are present and correct.
+        - Ensure all string values are properly quoted and terminated.
+        - Do not use '//' or any other comment syntax in the output.
+        - Do not include any fields with unterminated strings.
+        - Do not include any extra fields or text outside the JSON object.
+        - If you are unsure, validate the JSON before returning.
         """
         
         logger.info("Generating incident classification hierarchy...")
