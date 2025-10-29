@@ -1,265 +1,107 @@
-# import os
-# import json
-# import logging
-# from typing import Dict, List, Any
-
-# from utils.anthropic_client import AnthropicClient
-# from utils.event_correlation_engine import EventCorrelationEngine
-# from utils.formation_code_generator import FormationCodeGenerator
-# from config import OUTPUT_DIR
-
-# logging.basicConfig(level=logging.INFO)
-# logger = logging.getLogger(__name__)
-
-# class ElintGenerator:
-#     """Generate ELINT data with realistic correlation to ground truth events"""
-    
-#     def __init__(self):
-#         self.client = AnthropicClient()
-#         self.correlation_engine = EventCorrelationEngine()
-#         self.formation_gen = FormationCodeGenerator()
-#         self.formation_gen.initialize_default_units()
-    
-#     def generate_elint_data(self, 
-#                            scenario: Dict[str, Any], 
-#                            reference_data: Dict[str, Any],
-#                            batch_size: int = 5) -> List[Dict[str, Any]]:
-#         """Generate correlated ELINT data"""
-        
-#         logger.info(f"Generating correlated ELINT data for scenario: {scenario['scenario_name']}")
-        
-#         all_elint_records = []
-#         timeline = scenario.get("timeline", [])
-#         record_id = 1
-        
-#         # Process in batches
-#         for i in range(0, len(timeline), batch_size):
-#             batch_timeline = timeline[i:i+batch_size]
-            
-#             # Create correlation packages for all events in batch
-#             correlation_packages = []
-#             for day in batch_timeline:
-#                 for event in day.get("events", []):
-#                     if "ELINT" in event.get("observable_by", []):
-#                         corr_pkg = self.correlation_engine.create_correlated_event(event)
-#                         corr_pkg["date"] = day["date"]
-#                         correlation_packages.append(corr_pkg)
-            
-#             if not correlation_packages:
-#                 continue
-            
-#             prompt = self._create_correlated_elint_prompt(
-#                 scenario=scenario,
-#                 correlation_packages=correlation_packages,
-#                 reference_data=reference_data
-#             )
-            
-#             logger.info(f"Generating ELINT batch {i//batch_size + 1} with {len(correlation_packages)} correlated events")
-            
-#             try:
-#                 batch_response = self.client.generate_structured_data(prompt)
-#                 batch_records = batch_response.get("elint_records", [])
-                
-#                 # Add IDs and formation info
-#                 for record in batch_records:
-#                     record["id"] = record_id
-#                     record_id += 1
-                    
-#                     # Get a random intelligence unit for attribution
-#                     unit_info = self.formation_gen.generate_support_unit("NC", "14", "intelligence")
-#                     record.update({
-#                         "fmn_code": unit_info["fmn_code"],
-#                         "cmd_name": unit_info["cmd_name"],
-#                         "corps_name": unit_info["corps_name"],
-#                         "div_name": unit_info["div_name"],
-#                         "bde_name": unit_info["bde_name"],
-#                         "unit_name": unit_info["unit_name"],
-#                         "level": unit_info["level"]
-#                     })
-                
-#                 all_elint_records.extend(batch_records)
-#                 logger.info(f"Generated {len(batch_records)} ELINT records for batch")
-                
-#             except Exception as e:
-#                 logger.error(f"Error generating ELINT batch: {str(e)}")
-#                 continue
-        
-#         # Save generated data
-#         output_path = os.path.join(OUTPUT_DIR, f"elint_data_{scenario['scenario_name']}.json")
-#         with open(output_path, 'w') as f:
-#             json.dump(all_elint_records, f, indent=2)
-        
-#         logger.info(f"ELINT data saved to: {output_path}")
-#         logger.info(f"Total ELINT records: {len(all_elint_records)}")
-        
-#         return all_elint_records
-    
-#     def _create_correlated_elint_prompt(self, 
-#                                        scenario: Dict[str, Any],
-#                                        correlation_packages: List[Dict[str, Any]],
-#                                        reference_data: Dict[str, Any]) -> str:
-#         """Create prompt for generating correlated ELINT records"""
-        
-#         # Extract just the info needed for ELINT perspective
-#         elint_observable_events = []
-#         for pkg in correlation_packages:
-#             gt = pkg["ground_truth"]
-#             elint_obs = pkg["source_observations"].get("ELINT", {})
-            
-#             if elint_obs:
-#                 elint_observable_events.append({
-#                     "correlation_id": pkg["correlation_id"],
-#                     "date": pkg["date"],
-#                     "base_time": gt["time"],
-#                     "time_offset_minutes": elint_obs["time_offset_minutes"],
-#                     "actual_time": self.correlation_engine.get_time_adjusted_datetime(
-#                         gt["time"], 
-#                         elint_obs["time_offset_minutes"]
-#                     ),
-#                     "event_type": gt["event_type"],
-#                     "actor": gt["actor"],
-#                     "location": gt["location"],
-#                     "location_name": gt.get("location_name", ""),
-#                     "equipment": gt.get("equipment_involved", []),
-#                     "strength": gt.get("strength", ""),
-#                     "description": gt["description"],
-#                     "elint_specific": elint_obs["observable_details"]
-#                 })
-        
-#         prompt = f"""
-# Generate realistic ELINT (Electronic Intelligence) records for the Kargil War based on correlated ground truth events.
-
-# SCENARIO: {scenario['scenario_description']}
-
-# YOUR ROLE: You are an ELINT sensor system detecting electronic emissions. You CANNOT see physical objects, personnel, or equipment directly. You can ONLY detect:
-# - Radio communications (tactical, strategic, command nets)
-# - Radar emissions (surveillance, fire control, air defense)
-# - Electronic warfare systems
-# - Navigation systems
-
-# CORRELATED EVENTS TO OBSERVE:
-# {json.dumps(elint_observable_events, indent=2)}
-
-# CRITICAL ELINT OBSERVATION RULES:
-# 1. TIMING: Your detection occurs {elint_observable_events[0]['time_offset_minutes'] if elint_observable_events else -10} minutes BEFORE physical activity (electronic prep precedes movement)
-# 2. DESCRIPTION STYLE: Use TECHNICAL language - "VHF burst transmission", "encrypted tactical net", "fire control radar active"
-# 3. NO VISUAL DETAILS: You CANNOT mention seeing tanks, troops, or physical objects - only electronic signatures
-# 4. EQUIPMENT INFERENCE: Identify equipment types by their electronic signatures (e.g., "Signal pattern consistent with TRC-20H tactical radio")
-# 5. STRENGTH ESTIMATION: Infer strength from communication volume/patterns, not direct counts
-# 6. LOCATION: Provide coordinates from radio direction finding (triangulation) - medium accuracy (±500m)
-
-# REALISTIC PAKISTANI MILITARY EQUIPMENT EMISSIONS:
-# - Communications: TRC-20H Tactical Radio (VHF), HF/VHF Command Nets
-# - Radars: AN/TPS-43 (surveillance), Crotale Fire Control
-# - Chinese Equipment: Type 305/306 radars, GLD-09 laser systems
-
-# EXAMPLE ELINT RECORD:
-# {{
-#   "date": "1999-06-15",
-#   "from_time": "08:15",
-#   "to_time": "08:48",
-#   "en": "Pakistani XII Corps",
-#   "location": "Drass Sector",
-#   "range": "12.5",
-#   "emitter_type": "COMMUNICATIONS",
-#   "emitter_name": "TRC-20H Tactical Radio",
-#   "frequency": "345.2 MHz",
-#   "long": 75.7523,
-#   "lat": 34.4251,
-#   "ht": 3380,
-#   "e": 384251,
-#   "n": 592136,
-#   "zone": "43S",
-#   "description": "Encrypted VHF burst transmissions detected on Pakistani military frequency 345.2 MHz. Signal strength and modulation pattern consistent with TRC-20H tactical radio system. Traffic analysis indicates battalion-level command communications. Transmission duration 33 minutes suggests operational coordination rather than routine traffic. Direction finding places emitter in Drass sector, likely Pakistani forward operating base. Signal quality: strong, encryption: military-grade.",
-#   "correlation_id": "CORR_0042"
-# }}
-
-# GENERATE ELINT RECORDS:
-# - Create ONE record per correlated event
-# - Use the ACTUAL_TIME provided (already adjusted for ELINT detection timing)
-# - Maintain consistency with ground truth BUT express through electronic signatures only
-# - Include correlation_id for tracking
-# - Use realistic Pakistani military communications equipment
-# - Add technical ELINT-specific details (frequency, modulation, signal strength)
-
-# FORMAT AS JSON:
-# {{
-#   "elint_records": [
-#     // Array of ELINT records following the example format
-#   ]
-# }}
-
-# ONLY RETURN THE JSON OBJECT WITH NO ADDITIONAL TEXT.
-# """
-        
-#         return prompt
-
 import os
 import json
 import logging
 from typing import Dict, List, Any
 
 from utils.anthropic_client import AnthropicClient
-from utils.event_correlation_engine import EventCorrelationEngine
-from config import OUTPUT_DIR, OBSERVING_UNITS, FORMATION_MAPPING
+from utils.correlation_manager import CorrelationManager
+from config import (OUTPUT_DIR, OBSERVING_UNITS, FORMATION_MAPPING, 
+                   ANTHROPIC_API_KEY, MODEL_CONFIG)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-class ElintGenerator:
-    """Generate ELINT data with optimized prompts"""
-    
-    # SYSTEM PROMPT - sent once, reused for all calls
-    SYSTEM_PROMPT = """You are an ELINT (Electronic Intelligence) analyst generating records.
 
-RULES:
+class ElintGenerator:
+    """Generate ELINT (Electronic Intelligence) data with proper correlation"""
+    
+    # System prompt - sent once, reused for all calls
+    SYSTEM_PROMPT = """You are an ELINT (Electronic Intelligence) analyst generating detection records.
+
+CRITICAL RULES:
 1. Detect electronic emissions 10-15 minutes BEFORE physical activity
-2. Use technical language: "VHF transmission", "encrypted tactical net"
-3. NO visual details - you cannot see tanks/troops, only electronic signatures
-4. Identify equipment by electronic signature (e.g., "TRC-20H radio pattern")
-5. Infer strength from communication volume, not direct observation
+2. Use TECHNICAL language: "VHF burst transmission", "encrypted tactical net", "fire control radar active"
+3. NO visual details - you CANNOT see tanks/troops, only electronic signatures
+4. Identify equipment by electronic signature (e.g., "TRC-20H radio pattern detected")
+5. Infer strength from communication volume, NOT direct observation
 6. Location via triangulation (±500m accuracy)
 7. ALWAYS provide realistic coordinates within Kargil sector (lat 34.4-34.8, long 75.7-76.5)
-8. ALWAYS provide realistic values for all fields (no zeros)
+8. ALWAYS provide realistic non-zero values for all fields
+9. CRITICAL: Include correlation_id field in EVERY record, matching the corr_id from input
 
-PAKISTANI EQUIPMENT:
-- Radios: TRC-20H (VHF), HF Command Nets
-- Radars: AN/TPS-43, Crotale Fire Control
+PAKISTANI EQUIPMENT SIGNATURES:
+- Communications: TRC-20H Tactical Radio (VHF), HF/VHF Command Nets
+- Radars: AN/TPS-43 (surveillance), Crotale Fire Control
 
-FORMAT: Return JSON with "elint_records" array. Include correlation_id for tracking.
-IMPORTANT: Generate EXACTLY 6 records per day (one for each time slot)."""
+EXAMPLE RECORD:
+{
+  "date": "1999-06-15",
+  "from_time": "08:05",
+  "to_time": "08:48",
+  "en": "Pakistani XII Corps",
+  "location": "Drass Sector",
+  "range": "12.5",
+  "emitter_type": "COMMUNICATIONS",
+  "emitter_name": "TRC-20H Tactical Radio",
+  "frequency": "345.2",
+  "long": 75.7523,
+  "lat": 34.4251,
+  "ht": 3380,
+  "e": 384251,
+  "n": 3817136,
+  "zone": "43S",
+  "description": "Encrypted VHF burst transmissions detected...",
+  "correlation_id": "CORR_0042"
+}
+
+FORMAT: Return JSON with "elint_records" array containing EXACTLY 6 records.
+CRITICAL: Every record MUST include the correlation_id field!"""
     
-    def __init__(self):
-        self.client = AnthropicClient()
-        self.correlation_engine = EventCorrelationEngine()
+    def __init__(self, correlation_manager: CorrelationManager):
+        self.client = AnthropicClient(
+            api_key=ANTHROPIC_API_KEY,
+            model=MODEL_CONFIG["model"],
+            max_tokens=MODEL_CONFIG["max_tokens"],
+            temperature=MODEL_CONFIG["temperature"]
+        )
+        self.correlation_manager = correlation_manager
         self.unit_fmn_codes = OBSERVING_UNITS["ELINT"]
+        self.unit_rotation_index = 0
     
-    def generate_elint_data(self, 
-                           scenario: Dict[str, Any], 
-                           reference_data: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """Generate ELINT data with compact prompts - 6 records per day"""
+    def generate_elint_data(self, scenario: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Generate ELINT data for complete scenario"""
         
-        logger.info(f"Generating ELINT data for: {scenario['scenario_name']}")
+        logger.info("="*80)
+        logger.info("GENERATING ELINT DATA")
+        logger.info("="*80)
         
         all_elint_records = []
         timeline = scenario.get("timeline", [])
         record_id = 1
         
-        for day in timeline:
+        total_days = len(timeline)
+        
+        for day_idx, day in enumerate(timeline, 1):
+            date = day["date"]
             events = day.get("events", [])
             
-            # Create correlation packages for ALL 6 events
-            # ELINT can detect communications for most activities
+            logger.info(f"Processing day {day_idx}/{total_days}: {date} ({len(events)} events)")
+            
+            # Get correlation packages for events
             correlation_packages = []
             for event in events:
-                corr_pkg = self.correlation_engine.create_correlated_event(event)
-                corr_pkg["date"] = day["date"]
-                correlation_packages.append(corr_pkg)
+                correlation_id = event.get("correlation_id")
+                if correlation_id:
+                    corr_pkg = self.correlation_manager.get_correlation_package(correlation_id)
+                    if corr_pkg and "ELINT" in corr_pkg["source_observations"]:
+                        correlation_packages.append(corr_pkg)
             
-            # COMPACT PROMPT - request exactly 6 records
-            prompt = self._create_compact_prompt(day["date"], correlation_packages)
+            if not correlation_packages:
+                logger.warning(f"No ELINT-observable events for {date}, skipping")
+                continue
             
-            logger.info(f"Generating 6 ELINT records for {day['date']}")
+            # Generate ELINT records for this day
+            prompt = self._create_compact_prompt(date, correlation_packages)
             
             try:
                 batch_response = self.client.generate_structured_data(
@@ -268,100 +110,149 @@ IMPORTANT: Generate EXACTLY 6 records per day (one for each time slot)."""
                 )
                 batch_records = batch_response.get("elint_records", [])
                 
-                # Validate and clean records
+                # Validate record count
+                expected_count = len(correlation_packages)
+                if len(batch_records) != expected_count:
+                    logger.warning(
+                        f"Expected {expected_count} ELINT records for {date}, "
+                        f"got {len(batch_records)}"
+                    )
+                
+                # Process and validate records
                 valid_records = []
-                for record in batch_records:
-                    # Ensure numeric fields are not arrays/lists
-                    if isinstance(record.get("frequency"), str):
-                        # Try to extract first number if comma-separated
-                        record["frequency"] = record["frequency"].split(",")[0].strip()
-                    if isinstance(record.get("range"), str):
-                        record["range"] = record["range"].replace(" km", "").strip()
+                for idx, record in enumerate(batch_records[:expected_count]):
+                    # Validate correlation_id exists
+                    if not record.get("correlation_id"):
+                        logger.error(f"ELINT record {idx} missing correlation_id!")
+                        # Try to assign from correlation package
+                        if idx < len(correlation_packages):
+                            record["correlation_id"] = correlation_packages[idx]["correlation_id"]
+                            logger.info(f"  Assigned correlation_id: {record['correlation_id']}")
                     
-                    valid_records.append(record)
-                
-                # Ensure exactly 6 records
-                if len(valid_records) < 6:
-                    logger.warning(f"Only {len(valid_records)} ELINT records generated, expected 6")
-                batch_records = valid_records[:6]  # Take first 6
-                
-                # Add IDs and unit info (rotation)
-                for idx, record in enumerate(batch_records):
+                    # Validate and clean numeric fields
+                    record = self._validate_and_clean_record(record)
+                    
+                    # Add metadata
                     record["id"] = record_id
                     record_id += 1
                     
-                    # Rotate through units
-                    fmn_code = self.unit_fmn_codes[idx % len(self.unit_fmn_codes)]
+                    # Add unit information (rotate through units)
+                    fmn_code = self.unit_fmn_codes[self.unit_rotation_index % len(self.unit_fmn_codes)]
+                    self.unit_rotation_index += 1
+                    
                     unit_info = FORMATION_MAPPING[fmn_code].copy()
                     unit_info["fmn_code"] = fmn_code
                     record.update(unit_info)
+                    
+                    valid_records.append(record)
                 
-                all_elint_records.extend(batch_records)
-                logger.info(f"Generated {len(batch_records)} ELINT records")
+                all_elint_records.extend(valid_records)
+                logger.info(f"  ✓ Generated {len(valid_records)} ELINT records")
                 
             except Exception as e:
-                logger.error(f"Error generating ELINT: {str(e)}", exc_info=True)
+                logger.error(f"Error generating ELINT for {date}: {e}", exc_info=True)
                 continue
         
-        # Save
+        # Save output
         output_path = os.path.join(OUTPUT_DIR, f"elint_data_{scenario['scenario_name']}.json")
         with open(output_path, 'w') as f:
             json.dump(all_elint_records, f, indent=2)
         
-        logger.info(f"ELINT data saved: {output_path} ({len(all_elint_records)} records)")
+        logger.info(f"✓ ELINT generation complete: {len(all_elint_records)} records")
+        logger.info(f"✓ Saved to: {output_path}")
+        
         return all_elint_records
     
     def _create_compact_prompt(self, date: str, correlation_packages: List[Dict]) -> str:
-        """Create minimal prompt - events summary only"""
+        """Create minimal prompt with event summaries"""
         
-        # Extract key info only
         events_summary = []
         for pkg in correlation_packages:
             gt = pkg["ground_truth"]
-            elint_obs = pkg["source_observations"].get("ELINT", {})
+            elint_obs = pkg["source_observations"]["ELINT"]
             
-            if elint_obs:
-                events_summary.append({
-                    "corr_id": pkg["correlation_id"],
-                    "time": self.correlation_engine.get_time_adjusted_datetime(
-                        gt["time"], 
-                        elint_obs["time_offset_minutes"]
-                    ),
-                    "actor": gt["actor"],
-                    "activity": gt["event_type"],
-                    "location": gt["location"],
-                    "equipment": gt.get("equipment_involved", [])
-                })
+            adjusted_time = self.correlation_manager.apply_time_adjustment(
+                gt["time"], 
+                elint_obs["time_offset_minutes"]
+            )
+            
+            events_summary.append({
+                "corr_id": pkg["correlation_id"],
+                "detection_time": adjusted_time,
+                "actor": gt["actor"],
+                "activity": gt["event_type"],
+                "location": gt["location"],
+                "location_name": gt.get("location_name", ""),
+                "equipment": gt.get("equipment_involved", [])
+            })
         
-        # COMPACT PROMPT - no examples, no verbose instructions
         prompt = f"""Date: {date}
 
-Generate EXACTLY 6 ELINT records for these 6 time slots:
+Generate EXACTLY {len(events_summary)} ELINT records for these electronic detections:
 {json.dumps(events_summary, indent=1)}
 
-CRITICAL: Each field must have ONLY ONE VALUE. Do NOT use comma-separated values!
-
-Each record must include realistic values (NO ZEROS):
+Each record must include ALL fields with realistic values (NO ZEROS, NO NULLS):
 - date: "{date}"
-- from_time, to_time: (detection times, e.g., "08:05", "08:35")
+- from_time: (detection start, e.g., "08:05")
+- to_time: (detection end, e.g., "08:35")
 - en: (enemy unit, e.g., "Pakistani XII Corps")
 - location: (area name, e.g., "Drass Sector")
 - range: (SINGLE number, detection range in km, e.g., "12.5")
-- emitter_type: COMMUNICATIONS or RADAR (ONE type only)
-- emitter_name: (e.g., "TRC-20H Tactical Radio" - ONE name only)
-- frequency: (SINGLE number e.g., "345.2" NOT "345.2,5.9")
+- emitter_type: "COMMUNICATIONS" or "RADAR"
+- emitter_name: (e.g., "TRC-20H Tactical Radio")
+- frequency: (SINGLE number in MHz, e.g., "345.2" NOT "345.2,5.9")
 - long: (longitude 75.7-76.5, e.g., 76.1234)
 - lat: (latitude 34.4-34.8, e.g., 34.5123)
-- ht: (height in meters, e.g., 3350)
-- e: (easting in meters, e.g., 384250)
-- n: (northing in meters, e.g., 3817000)
+- ht: (height in meters 3000-5000, e.g., 3350)
+- e: (easting in meters 383000-385000, e.g., 384250)
+- n: (northing in meters 3815000-3820000, e.g., 3817000)
 - zone: "43S"
-- description: (2-3 sentences, technical language)
-- correlation_id: (from corr_id above)
+- description: (2-3 sentences, technical ELINT language)
+- correlation_id: (CRITICAL - MUST match corr_id from event above)
 
-IMPORTANT: Use only SINGLE numeric values, not lists or comma-separated values!
+CRITICAL REQUIREMENTS:
+1. MUST include correlation_id field in EVERY record
+2. Use ONLY SINGLE numeric values (no commas, no lists)
+3. NO visual descriptions (can't see tanks, only electronic signals)
+4. Technical language only
 
-Return JSON: {{"elint_records": [... 6 records ...]}}
-"""
+Return JSON: {{"elint_records": [... {len(events_summary)} records with correlation_id ...]}}"""
         
         return prompt
+    
+    def _validate_and_clean_record(self, record: Dict[str, Any]) -> Dict[str, Any]:
+        """Validate and clean ELINT record"""
+        
+        # Clean frequency field (common issue)
+        if "frequency" in record:
+            freq = str(record["frequency"])
+            # Extract first number if comma-separated
+            if "," in freq:
+                freq = freq.split(",")[0].strip()
+            record["frequency"] = freq
+        
+        # Clean range field
+        if "range" in record:
+            range_val = str(record["range"]).replace(" km", "").replace("km", "").strip()
+            if "," in range_val:
+                range_val = range_val.split(",")[0].strip()
+            record["range"] = range_val
+        
+        # Ensure zone is string
+        if "zone" in record:
+            record["zone"] = str(record["zone"])
+        
+        # Validate coordinates are in expected range
+        if "lat" in record:
+            lat = float(record["lat"])
+            if not (34.2 <= lat <= 34.9):
+                logger.warning(f"Latitude {lat} outside Kargil sector, adjusting")
+                record["lat"] = 34.5 + (lat % 0.5)
+        
+        if "long" in record:
+            long_val = float(record["long"])
+            if not (75.5 <= long_val <= 76.7):
+                logger.warning(f"Longitude {long_val} outside Kargil sector, adjusting")
+                record["long"] = 76.1 + (long_val % 0.6)
+        
+        return record

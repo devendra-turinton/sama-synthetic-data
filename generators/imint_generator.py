@@ -1,353 +1,216 @@
-# import os
-# import json
-# import logging
-# from typing import Dict, List, Any
-
-# from utils.anthropic_client import AnthropicClient
-# from utils.event_correlation_engine import EventCorrelationEngine
-# from utils.formation_code_generator import FormationCodeGenerator
-# from config import OUTPUT_DIR
-
-# logging.basicConfig(level=logging.INFO)
-# logger = logging.getLogger(__name__)
-
-# class ImintGenerator:
-#     """Generate IMINT data with realistic correlation to ground truth events"""
-    
-#     def __init__(self):
-#         self.client = AnthropicClient()
-#         self.correlation_engine = EventCorrelationEngine()
-#         self.formation_gen = FormationCodeGenerator()
-#         self.formation_gen.initialize_default_units()
-    
-#     def generate_imint_data(self, 
-#                            scenario: Dict[str, Any], 
-#                            reference_data: Dict[str, Any],
-#                            batch_size: int = 5) -> List[Dict[str, Any]]:
-#         """Generate correlated IMINT data"""
-        
-#         logger.info(f"Generating correlated IMINT data for scenario: {scenario['scenario_name']}")
-        
-#         all_imint_records = []
-#         timeline = scenario.get("timeline", [])
-#         record_id = 1
-        
-#         # Process in batches
-#         for i in range(0, len(timeline), batch_size):
-#             batch_timeline = timeline[i:i+batch_size]
-            
-#             # Create correlation packages for all events in batch
-#             correlation_packages = []
-#             for day in batch_timeline:
-#                 for event in day.get("events", []):
-#                     if "IMINT" in event.get("observable_by", []):
-#                         corr_pkg = self.correlation_engine.create_correlated_event(event)
-#                         corr_pkg["date"] = day["date"]
-#                         correlation_packages.append(corr_pkg)
-            
-#             if not correlation_packages:
-#                 continue
-            
-#             prompt = self._create_correlated_imint_prompt(
-#                 scenario=scenario,
-#                 correlation_packages=correlation_packages,
-#                 reference_data=reference_data
-#             )
-            
-#             logger.info(f"Generating IMINT batch {i//batch_size + 1} with {len(correlation_packages)} correlated events")
-            
-#             try:
-#                 batch_response = self.client.generate_structured_data(prompt)
-#                 batch_records = batch_response.get("imint_records", [])
-                
-#                 # Add IDs and formation info
-#                 for record in batch_records:
-#                     record["id"] = record_id
-#                     record_id += 1
-                    
-#                     # Get imagery analysis unit
-#                     unit_info = self.formation_gen.generate_support_unit("NC", "14", "intelligence")
-#                     unit_info["unit_name"] = "Imagery Analysis Cell 06"
-#                     record.update({
-#                         "fmn_code": unit_info["fmn_code"],
-#                         "cmd_name": unit_info["cmd_name"],
-#                         "corps_name": unit_info["corps_name"],
-#                         "div_name": unit_info["div_name"],
-#                         "bde_name": unit_info["bde_name"],
-#                         "unit_name": unit_info["unit_name"],
-#                         "level": "Division"
-#                     })
-                
-#                 all_imint_records.extend(batch_records)
-#                 logger.info(f"Generated {len(batch_records)} IMINT records for batch")
-                
-#             except Exception as e:
-#                 logger.error(f"Error generating IMINT batch: {str(e)}")
-#                 continue
-        
-#         # Save generated data
-#         output_path = os.path.join(OUTPUT_DIR, f"imint_data_{scenario['scenario_name']}.json")
-#         with open(output_path, 'w') as f:
-#             json.dump(all_imint_records, f, indent=2)
-        
-#         logger.info(f"IMINT data saved to: {output_path}")
-#         logger.info(f"Total IMINT records: {len(all_imint_records)}")
-        
-#         return all_imint_records
-    
-#     def _create_correlated_imint_prompt(self, 
-#                                        scenario: Dict[str, Any],
-#                                        correlation_packages: List[Dict[str, Any]],
-#                                        reference_data: Dict[str, Any]) -> str:
-#         """Create prompt for generating correlated IMINT records"""
-        
-#         # Extract IMINT observable events
-#         imint_observable_events = []
-#         for pkg in correlation_packages:
-#             gt = pkg["ground_truth"]
-#             imint_obs = pkg["source_observations"].get("IMINT", {})
-            
-#             if imint_obs:
-#                 imint_observable_events.append({
-#                     "correlation_id": pkg["correlation_id"],
-#                     "date": pkg["date"],
-#                     "base_time": gt["time"],
-#                     "time_offset_minutes": imint_obs["time_offset_minutes"],
-#                     "actual_time": self.correlation_engine.get_time_adjusted_datetime(
-#                         gt["time"], 
-#                         imint_obs["time_offset_minutes"]
-#                     ),
-#                     "event_type": gt["event_type"],
-#                     "actor": gt["actor"],
-#                     "location": gt["location"],
-#                     "location_name": gt.get("location_name", ""),
-#                     "equipment": gt.get("equipment_involved", []),
-#                     "strength": gt.get("strength", ""),
-#                     "description": gt["description"],
-#                     "imint_specific": imint_obs["observable_details"]
-#                 })
-        
-#         prompt = f"""
-# Generate realistic IMINT (Imagery Intelligence) records for the Kargil War based on satellite imagery observations.
-
-# SCENARIO: {scenario['scenario_description']}
-
-# YOUR ROLE: You are analyzing satellite imagery from CARTOSAT, RISAT, or commercial satellites. You see the battlefield from OVERHEAD perspective only.
-
-# CORRELATED EVENTS TO OBSERVE:
-# {json.dumps(imint_observable_events, indent=2)}
-
-# CRITICAL IMINT OBSERVATION RULES:
-# 1. OVERHEAD PERSPECTIVE: Describe only what's visible from directly above
-# 2. WEATHER CONSTRAINTS: Include cloud cover, visibility conditions affecting image quality
-# 3. CONFIDENCE QUALIFIERS: Use "CONFIRMED", "PROBABLE", "POSSIBLE" based on image quality
-# 4. PHYSICAL DETAILS: Focus on vehicle types, formations, positions, infrastructure
-# 5. COUNT ACCURACY: Give ranges for counts (e.g., "10-12 vehicles" not exact "11")
-# 6. LOCATION PRECISION: GPS-quality coordinates (±50m accuracy)
-# 7. NO ELECTRONIC INFO: Cannot detect radio signals, only physical presence
-
-# WEATHER/IMAGE QUALITY FROM CORRELATION DATA:
-# {imint_observable_events[0]['imint_specific']['weather_factor'] if imint_observable_events and 'imint_specific' in imint_observable_events[0] else '20% cloud cover'}
-
-# REALISTIC SATELLITE PLATFORMS:
-# - CARTOSAT-3 (0.25m resolution, optical)
-# - RISAT-2 (1m resolution, SAR - works through clouds)
-# - Commercial: WorldView, GeoEye
-
-# PAKISTANI EQUIPMENT VISIBLE FROM ABOVE:
-# - Armor: Al-Khalid MBT, T-59/69 tanks, M113 APCs
-# - Artillery: 130mm guns, 122mm howitzers
-# - Vehicles: Toyota Hilux, military trucks
-# - Aircraft: F-16, Mirage III/V
-
-# EXAMPLE IMINT RECORD:
-# {{
-#   "Date": "1999-06-15",
-#   "time": "10:35",
-#   "pre": "PRIORITY",
-#   "tgt_type": "VEHICLE",
-#   "tgt_sub_type": "ARMORED",
-#   "tgt_cl": "MAIN_BATTLE_TANK",
-#   "activity_type": "MOVEMENT",
-#   "activity_sub_type": "VEHICULAR",
-#   "activity_cl": "TACTICAL_DEPLOYMENT",
-#   "Incident_type": "FORCE_POSTURING",
-#   "Incident_sub_type": "EQUIPMENT_BUILDUP",
-#   "Incident_cl": "ARMOR_CONCENTRATION",
-#   "source_agency": "CARTOSAT-3",
-#   "grading": "B2",
-#   "str": "10-12 vehicles",
-#   "long": 75.7534,
-#   "lat": 34.4248,
-#   "ht": 3375,
-#   "e": 384235,
-#   "n": 592142,
-#   "zone": "43S",
-#   "input": "Satellite pass #CS3-14256",
-#   "description": "PROBABLE convoy of Al-Khalid MBTs observed in tactical column formation moving northeast along mountain road. Vehicle spacing approximately 50m consistent with tactical deployment. Cloud cover at 25% with good visibility in target area. Vehicle count: 10-12 based on thermal signatures. Formation pattern suggests company-sized armored element. POSSIBLE support vehicles observed at column rear. Image resolution sufficient for vehicle type identification. Assessment: Deliberate tactical movement rather than routine patrol based on formation discipline and direction of travel.",
-#   "upload_time": "1999-06-15 11:15",
-#   "correlation_id": "CORR_0042"
-# }}
-
-# GENERATE IMINT RECORDS:
-# - Create ONE record per correlated event
-# - Use ACTUAL_TIME (adjusted for satellite pass timing)
-# - Describe ONLY what's visible in satellite imagery
-# - Include realistic weather/visibility constraints
-# - Use confidence qualifiers (CONFIRMED/PROBABLE/POSSIBLE)
-# - Give vehicle/personnel count ranges, not exact numbers
-# - Include technical details (satellite name, pass number, resolution notes)
-# - Reference correlation_id for tracking
-
-# FORMAT AS JSON:
-# {{
-#   "imint_records": [
-#     // Array of IMINT records following the example format
-#   ]
-# }}
-
-# ONLY RETURN THE JSON OBJECT WITH NO ADDITIONAL TEXT.
-# """
-        
-#         return prompt
-
-
 import os
 import json
 import logging
 from typing import Dict, List, Any
 
 from utils.anthropic_client import AnthropicClient
-from utils.event_correlation_engine import EventCorrelationEngine
-from config import OUTPUT_DIR, OBSERVING_UNITS, FORMATION_MAPPING
+from utils.correlation_manager import CorrelationManager
+from config import (OUTPUT_DIR, OBSERVING_UNITS, FORMATION_MAPPING,
+                   ANTHROPIC_API_KEY, MODEL_CONFIG)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 class ImintGenerator:
-    """Generate IMINT data with optimized prompts"""
+    """Generate IMINT (Imagery Intelligence) data with proper correlation"""
     
     SYSTEM_PROMPT = """You are an IMINT (Imagery Intelligence) analyst reviewing satellite imagery.
 
-RULES:
-1. Overhead perspective only - describe what's visible from above
+CRITICAL RULES:
+1. Overhead perspective ONLY - describe what's visible from directly above
 2. Include weather constraints (cloud cover affects image quality)
-3. Use confidence qualifiers: CONFIRMED/PROBABLE/POSSIBLE
-4. Count ranges, not exact numbers (e.g., "10-12 vehicles")
+3. Use confidence qualifiers: CONFIRMED/PROBABLE/POSSIBLE based on image quality
+4. Count ranges, NOT exact numbers (e.g., "10-12 vehicles")
 5. GPS-quality coordinates (±50m accuracy)
 6. NO electronic signals - only physical observations
 7. ALWAYS provide realistic coordinates within Kargil sector (lat 34.4-34.8, long 75.7-76.5)
-8. ALWAYS provide realistic values for all numeric fields (no zeros)
+8. ALWAYS provide realistic non-zero values for all fields
+9. CRITICAL: Include correlation_id field in EVERY record
 
-SATELLITES: CARTOSAT-3 (0.25m), RISAT-2 (SAR)
-PAKISTANI EQUIPMENT: Al-Khalid MBT, T-59/69 tanks, M113 APCs, 130mm guns
+SATELLITES: CARTOSAT-3 (0.25m resolution), RISAT-2 (SAR, all-weather)
+PAKISTANI EQUIPMENT: Al-Khalid MBT, T-59/69 tanks, M113 APCs, 130mm artillery
 
-FORMAT: JSON with "imint_records" array.
-IMPORTANT: Generate EXACTLY 6 records per day (one for each time slot)."""
+EXAMPLE RECORD:
+{
+  "Date": "1999-06-15",
+  "time": "10:35",
+  "pre": "PRIORITY",
+  "tgt_type": "VEHICLE",
+  "tgt_sub_type": "ARMORED",
+  "tgt_cl": "MAIN_BATTLE_TANK",
+  "activity_type": "MOVEMENT",
+  "activity_sub_type": "VEHICULAR",
+  "activity_cl": "TACTICAL_DEPLOYMENT",
+  "Incident_type": "FORCE_POSTURING",
+  "Incident_sub_type": "EQUIPMENT_BUILDUP",
+  "Incident_cl": "ARMOR_CONCENTRATION",
+  "source_agency": "CARTOSAT-3",
+  "grading": "B2",
+  "str": "10-12 vehicles",
+  "long": 75.7534,
+  "lat": 34.4248,
+  "ht": 3375,
+  "e": 384235,
+  "n": 3817142,
+  "zone": "43S",
+  "input": "Satellite pass #CS3-14256",
+  "description": "PROBABLE convoy of armored vehicles...",
+  "upload_time": "1999-06-15 11:15",
+  "correlation_id": "CORR_0042"
+}
+
+FORMAT: Return JSON with "imint_records" array.
+CRITICAL: Every record MUST include correlation_id field!"""
     
-    def __init__(self):
-        self.client = AnthropicClient()
-        self.correlation_engine = EventCorrelationEngine()
+    def __init__(self, correlation_manager: CorrelationManager):
+        self.client = AnthropicClient(
+            api_key=ANTHROPIC_API_KEY,
+            model=MODEL_CONFIG["model"],
+            max_tokens=MODEL_CONFIG["max_tokens"],
+            temperature=MODEL_CONFIG["temperature"]
+        )
+        self.correlation_manager = correlation_manager
         self.unit_fmn_codes = OBSERVING_UNITS["IMINT"]
+        self.unit_rotation_index = 0
     
-    def generate_imint_data(self, 
-                           scenario: Dict[str, Any], 
-                           reference_data: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """Generate IMINT data - 6 records per day"""
+    def generate_imint_data(self, scenario: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Generate IMINT data for complete scenario"""
         
-        logger.info(f"Generating IMINT data for: {scenario['scenario_name']}")
+        logger.info("="*80)
+        logger.info("GENERATING IMINT DATA")
+        logger.info("="*80)
         
         all_imint_records = []
         timeline = scenario.get("timeline", [])
         record_id = 1
         
-        for day in timeline:
+        total_days = len(timeline)
+        
+        for day_idx, day in enumerate(timeline, 1):
+            date = day["date"]
             events = day.get("events", [])
             
-            # Create correlation packages for ALL events
+            logger.info(f"Processing day {day_idx}/{total_days}: {date} ({len(events)} events)")
+            
+            # Get correlation packages
             correlation_packages = []
             for event in events:
-                corr_pkg = self.correlation_engine.create_correlated_event(event)
-                corr_pkg["date"] = day["date"]
-                correlation_packages.append(corr_pkg)
+                correlation_id = event.get("correlation_id")
+                if correlation_id:
+                    corr_pkg = self.correlation_manager.get_correlation_package(correlation_id)
+                    if corr_pkg and "IMINT" in corr_pkg["source_observations"]:
+                        correlation_packages.append(corr_pkg)
             
-            prompt = self._create_compact_prompt(day["date"], correlation_packages)
+            if not correlation_packages:
+                logger.warning(f"No IMINT-observable events for {date}, skipping")
+                continue
             
-            logger.info(f"Generating 6 IMINT records for {day['date']}")
+            # Generate records
+            prompt = self._create_compact_prompt(date, correlation_packages)
             
             try:
                 batch_response = self.client.generate_structured_data(
-                    prompt, 
+                    prompt,
                     system_prompt=self.SYSTEM_PROMPT
                 )
                 batch_records = batch_response.get("imint_records", [])
                 
-                # Ensure exactly 6 records
-                if len(batch_records) < 6:
-                    logger.warning(f"Only {len(batch_records)} IMINT records generated, expected 6")
-                batch_records = batch_records[:6]
+                expected_count = len(correlation_packages)
+                if len(batch_records) != expected_count:
+                    logger.warning(
+                        f"Expected {expected_count} IMINT records for {date}, "
+                        f"got {len(batch_records)}"
+                    )
                 
-                for idx, record in enumerate(batch_records):
+                valid_records = []
+                for idx, record in enumerate(batch_records[:expected_count]):
+                    # Validate correlation_id
+                    if not record.get("correlation_id"):
+                        logger.error(f"IMINT record {idx} missing correlation_id!")
+                        if idx < len(correlation_packages):
+                            record["correlation_id"] = correlation_packages[idx]["correlation_id"]
+                            logger.info(f"  Assigned correlation_id: {record['correlation_id']}")
+                    
+                    # Add metadata
                     record["id"] = record_id
                     record_id += 1
                     
-                    fmn_code = self.unit_fmn_codes[idx % len(self.unit_fmn_codes)]
+                    # Add unit information
+                    fmn_code = self.unit_fmn_codes[self.unit_rotation_index % len(self.unit_fmn_codes)]
+                    self.unit_rotation_index += 1
+                    
                     unit_info = FORMATION_MAPPING[fmn_code].copy()
                     unit_info["fmn_code"] = fmn_code
                     record.update(unit_info)
+                    
+                    valid_records.append(record)
                 
-                all_imint_records.extend(batch_records)
-                logger.info(f"Generated {len(batch_records)} IMINT records")
+                all_imint_records.extend(valid_records)
+                logger.info(f"  ✓ Generated {len(valid_records)} IMINT records")
                 
             except Exception as e:
-                logger.error(f"Error generating IMINT: {str(e)}")
+                logger.error(f"Error generating IMINT for {date}: {e}", exc_info=True)
                 continue
         
+        # Save output
         output_path = os.path.join(OUTPUT_DIR, f"imint_data_{scenario['scenario_name']}.json")
         with open(output_path, 'w') as f:
             json.dump(all_imint_records, f, indent=2)
         
-        logger.info(f"IMINT data saved: {output_path} ({len(all_imint_records)} records)")
+        logger.info(f"✓ IMINT generation complete: {len(all_imint_records)} records")
+        logger.info(f"✓ Saved to: {output_path}")
+        
         return all_imint_records
     
     def _create_compact_prompt(self, date: str, correlation_packages: List[Dict]) -> str:
-        """Compact prompt"""
+        """Create compact prompt"""
         
         events_summary = []
         for pkg in correlation_packages:
             gt = pkg["ground_truth"]
-            imint_obs = pkg["source_observations"].get("IMINT", {})
+            imint_obs = pkg["source_observations"]["IMINT"]
             
-            if imint_obs:
-                events_summary.append({
-                    "corr_id": pkg["correlation_id"],
-                    "time": self.correlation_engine.get_time_adjusted_datetime(
-                        gt["time"], 
-                        imint_obs["time_offset_minutes"]
-                    ),
-                    "actor": gt["actor"],
-                    "activity": gt["event_type"],
-                    "location": gt["location"],
-                    "equipment": gt.get("equipment_involved", []),
-                    "weather": imint_obs["observable_details"].get("weather_factor", "20% cloud cover")
-                })
+            adjusted_time = self.correlation_manager.apply_time_adjustment(
+                gt["time"],
+                imint_obs["time_offset_minutes"]
+            )
+            
+            events_summary.append({
+                "corr_id": pkg["correlation_id"],
+                "observation_time": adjusted_time,
+                "actor": gt["actor"],
+                "activity": gt["event_type"],
+                "location": gt["location"],
+                "location_name": gt.get("location_name", ""),
+                "equipment": gt.get("equipment_involved", []),
+                "strength": gt.get("strength", ""),
+                "weather": imint_obs["observable_details"].get("weather_factor", "20% cloud cover"),
+                "image_quality": imint_obs["observable_details"].get("image_quality", "good")
+            })
         
         prompt = f"""Date: {date}
 
-Generate EXACTLY 6 IMINT records for these satellite observations:
+Generate EXACTLY {len(events_summary)} IMINT records for these satellite observations:
 {json.dumps(events_summary, indent=1)}
 
-Each record must include realistic values (NO ZEROS) and MUST include correlation_id:
+Each record must include ALL fields with realistic values:
 - Date: "{date}"
-- time: (observation time)
-- pre: PRIORITY/ROUTINE/IMMEDIATE
-- tgt_type, tgt_sub_type, tgt_cl
-- activity_type, activity_sub_type, activity_cl
-- Incident_type, Incident_sub_type, Incident_cl
-- source_agency: CARTOSAT-3 or RISAT-2
-- grading: A1, A2, B1, B2, or C3
+- time: (observation time from event)
+- pre: "PRIORITY", "ROUTINE", or "IMMEDIATE"
+- tgt_type: e.g., "VEHICLE", "PERSONNEL", "INSTALLATION"
+- tgt_sub_type: e.g., "ARMORED", "INFANTRY", "COMMAND_POST"
+- tgt_cl: e.g., "MAIN_BATTLE_TANK", "LIGHT_INFANTRY", "HQ_FACILITY"
+- activity_type: e.g., "MOVEMENT", "COMBAT", "CONSTRUCTION"
+- activity_sub_type: e.g., "VEHICULAR", "DIRECT_FIRE", "DEFENSIVE_POSITION"
+- activity_cl: e.g., "TACTICAL_DEPLOYMENT", "ENGAGEMENT", "FORTIFICATION"
+- Incident_type: e.g., "FORCE_POSTURING", "BORDER_VIOLATION"
+- Incident_sub_type: e.g., "EQUIPMENT_BUILDUP", "TROOP_INCURSION"
+- Incident_cl: e.g., "ARMOR_CONCENTRATION", "ARMED_INCURSION"
+- source_agency: "CARTOSAT-3" or "RISAT-2"
+- grading: "A1", "A2", "B1", "B2", or "C3"
 - str: (count range like "10-12 vehicles")
-- long: (76.1-76.5)
+- long: (76.0-76.6)
 - lat: (34.4-34.7)
 - ht: (3000-5000)
 - e: (383000-385000)
@@ -356,11 +219,8 @@ Each record must include realistic values (NO ZEROS) and MUST include correlatio
 - input: (e.g., "Satellite pass #CS3-14256")
 - description: (2-3 sentences, overhead perspective, include weather)
 - upload_time: "{date} HH:MM" (30 min after observation)
-- correlation_id: (CRITICAL - MUST match corr_id from events above)
+- correlation_id: (CRITICAL - MUST match corr_id from event)
 
-IMPORTANT: Every record MUST have a correlation_id field that matches the corr_id from the event!
-
-Return JSON: {{"imint_records": [... 6 records, each with correlation_id ...]}}
-"""
+Return JSON: {{"imint_records": [... {len(events_summary)} records with correlation_id ...]}}"""
         
         return prompt

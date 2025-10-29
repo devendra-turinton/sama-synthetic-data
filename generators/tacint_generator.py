@@ -1,372 +1,229 @@
-# import os
-# import json
-# import logging
-# from typing import Dict, List, Any
-
-# from utils.anthropic_client import AnthropicClient
-# from utils.event_correlation_engine import EventCorrelationEngine
-# from utils.formation_code_generator import FormationCodeGenerator
-# from config import OUTPUT_DIR
-
-# logging.basicConfig(level=logging.INFO)
-# logger = logging.getLogger(__name__)
-
-# class TacintGenerator:
-#     """Generate TACINT data with realistic correlation to ground truth events"""
-    
-#     def __init__(self):
-#         self.client = AnthropicClient()
-#         self.correlation_engine = EventCorrelationEngine()
-#         self.formation_gen = FormationCodeGenerator()
-#         self.formation_gen.initialize_default_units()
-    
-#     def generate_tacint_data(self, 
-#                             scenario: Dict[str, Any], 
-#                             reference_data: Dict[str, Any],
-#                             batch_size: int = 5) -> List[Dict[str, Any]]:
-#         """Generate correlated TACINT data"""
-        
-#         logger.info(f"Generating correlated TACINT data for scenario: {scenario['scenario_name']}")
-        
-#         all_tacint_records = []
-#         timeline = scenario.get("timeline", [])
-#         record_id = 1
-        
-#         # Process in batches
-#         for i in range(0, len(timeline), batch_size):
-#             batch_timeline = timeline[i:i+batch_size]
-            
-#             # Create correlation packages for all events in batch
-#             correlation_packages = []
-#             for day in batch_timeline:
-#                 for event in day.get("events", []):
-#                     if "TACINT" in event.get("observable_by", []):
-#                         corr_pkg = self.correlation_engine.create_correlated_event(event)
-#                         corr_pkg["date"] = day["date"]
-#                         correlation_packages.append(corr_pkg)
-            
-#             if not correlation_packages:
-#                 continue
-            
-#             prompt = self._create_correlated_tacint_prompt(
-#                 scenario=scenario,
-#                 correlation_packages=correlation_packages,
-#                 reference_data=reference_data
-#             )
-            
-#             logger.info(f"Generating TACINT batch {i//batch_size + 1} with {len(correlation_packages)} correlated events")
-            
-#             try:
-#                 batch_response = self.client.generate_structured_data(prompt)
-#                 batch_records = batch_response.get("tacint_records", [])
-                
-#                 # Add IDs and formation info
-#                 for record in batch_records:
-#                     record["id"] = record_id
-#                     record_id += 1
-                    
-#                     # Get BSF or ground unit
-#                     unit_info = self.formation_gen.generate_support_unit("NC", "14", "bsf")
-#                     record.update({
-#                         "fmn_code": unit_info["fmn_code"],
-#                         "cmd_name": unit_info["cmd_name"],
-#                         "corps_name": unit_info["corps_name"],
-#                         "div_name": unit_info["div_name"],
-#                         "bde_name": unit_info["bde_name"],
-#                         "unit_name": unit_info["unit_name"],
-#                         "level": "Battalion"
-#                     })
-                
-#                 all_tacint_records.extend(batch_records)
-#                 logger.info(f"Generated {len(batch_records)} TACINT records for batch")
-                
-#             except Exception as e:
-#                 logger.error(f"Error generating TACINT batch: {str(e)}")
-#                 continue
-        
-#         # Save generated data
-#         output_path = os.path.join(OUTPUT_DIR, f"tacint_data_{scenario['scenario_name']}.json")
-#         with open(output_path, 'w') as f:
-#             json.dump(all_tacint_records, f, indent=2)
-        
-#         logger.info(f"TACINT data saved to: {output_path}")
-#         logger.info(f"Total TACINT records: {len(all_tacint_records)}")
-        
-#         return all_tacint_records
-    
-#     def _create_correlated_tacint_prompt(self, 
-#                                         scenario: Dict[str, Any],
-#                                         correlation_packages: List[Dict[str, Any]],
-#                                         reference_data: Dict[str, Any]) -> str:
-#         """Create prompt for generating correlated TACINT records"""
-        
-#         # Extract TACINT observable events
-#         tacint_observable_events = []
-#         for pkg in correlation_packages:
-#             gt = pkg["ground_truth"]
-#             tacint_obs = pkg["source_observations"].get("TACINT", {})
-            
-#             if tacint_obs:
-#                 tacint_observable_events.append({
-#                     "correlation_id": pkg["correlation_id"],
-#                     "date": pkg["date"],
-#                     "base_time": gt["time"],
-#                     "time_offset_minutes": tacint_obs["time_offset_minutes"],
-#                     "actual_time": self.correlation_engine.get_time_adjusted_datetime(
-#                         gt["time"], 
-#                         tacint_obs["time_offset_minutes"]
-#                     ),
-#                     "event_type": gt["event_type"],
-#                     "actor": gt["actor"],
-#                     "location": gt["location"],
-#                     "location_name": gt.get("location_name", ""),
-#                     "equipment": gt.get("equipment_involved", []),
-#                     "strength": gt.get("strength", ""),
-#                     "description": gt["description"],
-#                     "tacint_specific": tacint_obs["observable_details"]
-#                 })
-        
-#         prompt = f"""
-# Generate realistic TACINT (Tactical Intelligence) records for the Kargil War based on ground observer reports.
-
-# SCENARIO: {scenario['scenario_description']}
-
-# YOUR ROLE: You are a GROUND OBSERVER from BSF observation posts or forward Indian Army positions. You report what you SEE, HEAR, and directly observe from your position.
-
-# CORRELATED EVENTS TO OBSERVE:
-# {json.dumps(tacint_observable_events, indent=2)}
-
-# CRITICAL TACINT OBSERVATION RULES:
-# 1. GROUND-LEVEL PERSPECTIVE: You see things from mountain observation posts, not from above
-# 2. HUMAN LIMITATIONS: Include realistic constraints - line of sight, weather, visibility, observer fatigue
-# 3. OBSERVATION TOOLS: Binoculars, spotting scopes, thermal imaging, night vision
-# 4. DISTANCE MATTERS: Closer observations are more detailed and confident
-# 5. SENSORY DETAILS: Include sounds (artillery, engines), visual cues (dust, smoke), even smells
-# 6. REPORTING DELAY: You observe first, then report (10-45 minutes after event starts)
-# 7. GRADING SYSTEM: A1-A5 (source reliability), 1-5 (information accuracy)
-
-# GRADING EXAMPLES:
-# - A1: Reliable source, confirmed information
-# - A2: Reliable source, probably true
-# - B2: Usually reliable source, probably true
-# - C3: Fairly reliable source, possibly true
-# - D4: Not usually reliable source, doubtfully true
-
-# OBSERVATION METHODS BY DISTANCE:
-# - < 1km: Direct visual, equipment details visible, can hear voices
-# - 1-2.5km: Binocular observation, vehicle types identifiable, engine sounds
-# - 2.5-4km: Spotting scope needed, general equipment types, limited detail
-# - > 4km: Thermal imaging, difficult identification, count-based assessment
-
-# REALISTIC BSF/ARMY OBSERVATION POSTS:
-# - BSF OP Delta-7 (Forward observation, 2.5km from LoC)
-# - BSF OP Alpha-3 (Valley observation, 3.8km view distance)
-# - BSF Battalion 125 (Patrol elements)
-# - 18 Grenadiers Forward Post (Frontline position)
-
-# EXAMPLE TACINT RECORD:
-# {{
-#   "Date": "1999-06-15",
-#   "time": "10:55",
-#   "pre": "IMMEDIATE",
-#   "tgt_type": "VEHICLE",
-#   "tgt_sub_type": "ARMORED",
-#   "tgt_cl": "MAIN_BATTLE_TANK",
-#   "activity_type": "MOVEMENT",
-#   "activity_sub_type": "VEHICULAR",
-#   "activity_cl": "TACTICAL_DEPLOYMENT",
-#   "Incident_type": "BORDER_VIOLATION",
-#   "Incident_sub_type": "TROOP_INCURSION",
-#   "Incident_cl": "ARMORED_COLUMN",
-#   "source_agency": "BSF Observation Post Delta-7",
-#   "grading": "A2",
-#   "str": "11-13 vehicles",
-#   "long": 75.7528,
-#   "lat": 34.4246,
-#   "ht": 3378,
-#   "e": 384242,
-#   "n": 592138,
-#   "zone": "43S",
-#   "input": "Visual observation with thermal imaging",
-#   "description": "Column of tracked armored vehicles observed at 10:40 hours moving northeast along mountain road at range 2.8km. Visual identification through spotting scope confirms lead vehicles as Al-Khalid main battle tanks based on distinctive turret profile and reactive armor configuration. Count: 11-13 vehicles in tactical formation with approximately 50m spacing. Heavy engine noise audible even at this range. Column generating significant dust signature visible from OP. Weather conditions: clear visibility, light wind from southwest. Observation quality: good. Assessment: Deliberate tactical movement, not routine patrol - formation discipline and speed indicate operational deployment. Pakistani tactical markings visible on lead vehicles. Column direction suggests movement toward Point 5140 area. Continued observation maintained.",
-#   "upload_time": "1999-06-15 11:12",
-#   "correlation_id": "CORR_0042"
-# }}
-
-# GENERATE TACINT RECORDS:
-# - Create ONE record per correlated event
-# - Use ACTUAL_TIME (includes reporting delay after observation)
-# - Write in NARRATIVE style - a soldier describing what they observed
-# - Include sensory details (sights, sounds, environmental conditions)
-# - Use appropriate grading based on observation quality
-# - Mention observation method and distance
-# - Give count ranges with uncertainty qualifiers ("approximately", "estimated")
-# - Include realistic human observer details and limitations
-# - Reference correlation_id for tracking
-
-# FORMAT AS JSON:
-# {{
-#   "tacint_records": [
-#     // Array of TACINT records following the example format
-#   ]
-# }}
-
-# ONLY RETURN THE JSON OBJECT WITH NO ADDITIONAL TEXT.
-# """
-        
-#         return prompt
-
-
 import os
 import json
 import logging
 from typing import Dict, List, Any
 
 from utils.anthropic_client import AnthropicClient
-from utils.event_correlation_engine import EventCorrelationEngine
-from config import OUTPUT_DIR, OBSERVING_UNITS,FORMATION_MAPPING
+from utils.correlation_manager import CorrelationManager
+from config import (OUTPUT_DIR, OBSERVING_UNITS, FORMATION_MAPPING,
+                   ANTHROPIC_API_KEY, MODEL_CONFIG)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 class TacintGenerator:
-    """Generate TACINT data with optimized prompts"""
+    """Generate TACINT (Tactical Intelligence) data with proper correlation"""
     
     SYSTEM_PROMPT = """You are a ground observer (BSF/Army) reporting tactical intelligence.
 
-RULES:
+CRITICAL RULES:
 1. Ground-level perspective - describe what you SEE and HEAR
 2. Report 10-45 minutes AFTER observing (reporting delay)
 3. Narrative style - write like a soldier's field report
 4. Include sensory details (sounds, visual cues, environmental conditions)
-5. Grading: A1 (reliable source, confirmed) to C3 (fairly reliable, possible)
+5. Grading: A1 (reliable, confirmed) to C3 (fairly reliable, possible)
 6. Observation distance affects detail (closer = more detail)
-7. ALWAYS provide realistic coordinates within Kargil sector (lat 34.4-34.8, long 75.7-76.5)
-8. ALWAYS provide realistic values for all numeric fields (no zeros)
+7. ALWAYS provide realistic coordinates (lat 34.4-34.8, long 75.7-76.5)
+8. ALWAYS provide realistic non-zero values for all fields
+9. CRITICAL: Include correlation_id field in EVERY record
 
 OBSERVATION METHODS:
 - < 2km: Binoculars, clear identification
-- 2-4km: Spotting scope, probable identification  
+- 2-4km: Spotting scope, probable identification
 - > 4km: Thermal imaging, difficult identification
 
-FORMAT: JSON with "tacint_records" array.
-IMPORTANT: Generate EXACTLY 6 records per day (one for each time slot)."""
+EXAMPLE RECORD:
+{
+  "Date": "1999-06-15",
+  "time": "10:55",
+  "pre": "IMMEDIATE",
+  "tgt_type": "VEHICLE",
+  "tgt_sub_type": "ARMORED",
+  "tgt_cl": "MAIN_BATTLE_TANK",
+  "activity_type": "MOVEMENT",
+  "activity_sub_type": "VEHICULAR",
+  "activity_cl": "TACTICAL_DEPLOYMENT",
+  "Incident_type": "BORDER_VIOLATION",
+  "Incident_sub_type": "TROOP_INCURSION",
+  "Incident_cl": "ARMORED_COLUMN",
+  "source_agency": "BSF Observation Post Delta-7",
+  "grading": "A2",
+  "str": "11-13 vehicles",
+  "long": 75.7528,
+  "lat": 34.4246,
+  "ht": 3378,
+  "e": 384242,
+  "n": 3817138,
+  "zone": "43S",
+  "input": "Visual observation with thermal imaging",
+  "description": "Column of tracked vehicles observed at 10:40 hours...",
+  "upload_time": "1999-06-15 11:12",
+  "correlation_id": "CORR_0042"
+}
+
+FORMAT: Return JSON with "tacint_records" array.
+CRITICAL: Every record MUST include correlation_id field!"""
     
-    def __init__(self):
-        self.client = AnthropicClient()
-        self.correlation_engine = EventCorrelationEngine()
+    def __init__(self, correlation_manager: CorrelationManager):
+        self.client = AnthropicClient(
+            api_key=ANTHROPIC_API_KEY,
+            model=MODEL_CONFIG["model"],
+            max_tokens=MODEL_CONFIG["max_tokens"],
+            temperature=MODEL_CONFIG["temperature"]
+        )
+        self.correlation_manager = correlation_manager
         self.unit_fmn_codes = OBSERVING_UNITS["TACINT"]
+        self.unit_rotation_index = 0
     
-    def generate_tacint_data(self, 
-                            scenario: Dict[str, Any], 
-                            reference_data: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """Generate TACINT data - 6 records per day"""
+    def generate_tacint_data(self, scenario: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Generate TACINT data for complete scenario"""
         
-        logger.info(f"Generating TACINT data for: {scenario['scenario_name']}")
+        logger.info("="*80)
+        logger.info("GENERATING TACINT DATA")
+        logger.info("="*80)
         
         all_tacint_records = []
         timeline = scenario.get("timeline", [])
         record_id = 1
         
-        for day in timeline:
+        total_days = len(timeline)
+        
+        for day_idx, day in enumerate(timeline, 1):
+            date = day["date"]
             events = day.get("events", [])
             
-            # Create correlation packages for ALL events
+            logger.info(f"Processing day {day_idx}/{total_days}: {date} ({len(events)} events)")
+            
+            # Get correlation packages
             correlation_packages = []
             for event in events:
-                corr_pkg = self.correlation_engine.create_correlated_event(event)
-                corr_pkg["date"] = day["date"]
-                correlation_packages.append(corr_pkg)
+                correlation_id = event.get("correlation_id")
+                if correlation_id:
+                    corr_pkg = self.correlation_manager.get_correlation_package(correlation_id)
+                    if corr_pkg and "TACINT" in corr_pkg["source_observations"]:
+                        correlation_packages.append(corr_pkg)
             
-            prompt = self._create_compact_prompt(day["date"], correlation_packages)
+            if not correlation_packages:
+                logger.warning(f"No TACINT-observable events for {date}, skipping")
+                continue
             
-            logger.info(f"Generating 6 TACINT records for {day['date']}")
+            # Generate records
+            prompt = self._create_compact_prompt(date, correlation_packages)
             
             try:
                 batch_response = self.client.generate_structured_data(
-                    prompt, 
+                    prompt,
                     system_prompt=self.SYSTEM_PROMPT
                 )
                 batch_records = batch_response.get("tacint_records", [])
                 
-                # Ensure exactly 6 records
-                if len(batch_records) < 6:
-                    logger.warning(f"Only {len(batch_records)} TACINT records generated, expected 6")
-                batch_records = batch_records[:6]
+                expected_count = len(correlation_packages)
+                if len(batch_records) != expected_count:
+                    logger.warning(
+                        f"Expected {expected_count} TACINT records for {date}, "
+                        f"got {len(batch_records)}"
+                    )
                 
-                for idx, record in enumerate(batch_records):
+                valid_records = []
+                for idx, record in enumerate(batch_records[:expected_count]):
+                    # Validate correlation_id
+                    if not record.get("correlation_id"):
+                        logger.error(f"TACINT record {idx} missing correlation_id!")
+                        if idx < len(correlation_packages):
+                            record["correlation_id"] = correlation_packages[idx]["correlation_id"]
+                            logger.info(f"  Assigned correlation_id: {record['correlation_id']}")
+                    
+                    # Add metadata
                     record["id"] = record_id
                     record_id += 1
                     
-                    # Rotate through units
-                    fmn_code = self.unit_fmn_codes[idx % len(self.unit_fmn_codes)]
+                    # Add unit information (rotate through multiple BSF posts)
+                    fmn_code = self.unit_fmn_codes[self.unit_rotation_index % len(self.unit_fmn_codes)]
+                    self.unit_rotation_index += 1
+                    
                     unit_info = FORMATION_MAPPING[fmn_code].copy()
                     unit_info["fmn_code"] = fmn_code
                     record.update(unit_info)
+                    
+                    valid_records.append(record)
                 
-                all_tacint_records.extend(batch_records)
-                logger.info(f"Generated {len(batch_records)} TACINT records")
+                all_tacint_records.extend(valid_records)
+                logger.info(f"  ✓ Generated {len(valid_records)} TACINT records")
                 
             except Exception as e:
-                logger.error(f"Error generating TACINT: {str(e)}")
+                logger.error(f"Error generating TACINT for {date}: {e}", exc_info=True)
                 continue
         
+        # Save output
         output_path = os.path.join(OUTPUT_DIR, f"tacint_data_{scenario['scenario_name']}.json")
         with open(output_path, 'w') as f:
             json.dump(all_tacint_records, f, indent=2)
         
-        logger.info(f"TACINT data saved: {output_path} ({len(all_tacint_records)} records)")
+        logger.info(f"✓ TACINT generation complete: {len(all_tacint_records)} records")
+        logger.info(f"✓ Saved to: {output_path}")
+        
         return all_tacint_records
     
     def _create_compact_prompt(self, date: str, correlation_packages: List[Dict]) -> str:
-        """Compact prompt"""
+        """Create compact prompt"""
         
         events_summary = []
         for pkg in correlation_packages:
             gt = pkg["ground_truth"]
-            tacint_obs = pkg["source_observations"].get("TACINT", {})
+            tacint_obs = pkg["source_observations"]["TACINT"]
             
-            if tacint_obs:
-                events_summary.append({
-                    "corr_id": pkg["correlation_id"],
-                    "time": self.correlation_engine.get_time_adjusted_datetime(
-                        gt["time"], 
-                        tacint_obs["time_offset_minutes"]
-                    ),
-                    "actor": gt["actor"],
-                    "activity": gt["event_type"],
-                    "location": gt["location"],
-                    "equipment": gt.get("equipment_involved", []),
-                    "obs_distance": tacint_obs["observable_details"].get("observer_distance_km", 2.5)
-                })
+            adjusted_time = self.correlation_manager.apply_time_adjustment(
+                gt["time"],
+                tacint_obs["time_offset_minutes"]
+            )
+            
+            events_summary.append({
+                "corr_id": pkg["correlation_id"],
+                "reporting_time": adjusted_time,
+                "actor": gt["actor"],
+                "activity": gt["event_type"],
+                "location": gt["location"],
+                "location_name": gt.get("location_name", ""),
+                "equipment": gt.get("equipment_involved", []),
+                "strength": gt.get("strength", ""),
+                "observer_distance": tacint_obs["observable_details"].get("observer_distance_km", 2.5),
+                "observation_method": tacint_obs["observable_details"].get("observation_method", "Binoculars"),
+                "grading": tacint_obs["observable_details"].get("grading", "A2")
+            })
         
         prompt = f"""Date: {date}
 
-Generate EXACTLY 6 TACINT records for these ground observations:
+Generate EXACTLY {len(events_summary)} TACINT records for these ground observations:
 {json.dumps(events_summary, indent=1)}
 
-Each record must include realistic values (NO ZEROS):
+Each record must include ALL fields with realistic values:
 - Date: "{date}"
-- time: (reporting time)
-- pre: PRIORITY/ROUTINE/IMMEDIATE
-- tgt_type, tgt_sub_type, tgt_cl
-- activity_type, activity_sub_type, activity_cl
-- Incident_type, Incident_sub_type, Incident_cl
-- source_agency: (BSF OP name)
-- grading: A1, A2, B2, C3
+- time: (reporting time from event)
+- pre: "PRIORITY", "ROUTINE", or "IMMEDIATE"
+- tgt_type: e.g., "VEHICLE", "PERSONNEL"
+- tgt_sub_type: e.g., "ARMORED", "INFANTRY"
+- tgt_cl: e.g., "MAIN_BATTLE_TANK", "LIGHT_INFANTRY"
+- activity_type: e.g., "MOVEMENT", "COMBAT"
+- activity_sub_type: e.g., "VEHICULAR", "DIRECT_FIRE"
+- activity_cl: e.g., "TACTICAL_DEPLOYMENT", "ENGAGEMENT"
+- Incident_type: e.g., "BORDER_VIOLATION", "FORCE_POSTURING"
+- Incident_sub_type: e.g., "TROOP_INCURSION", "EQUIPMENT_BUILDUP"
+- Incident_cl: e.g., "ARMED_INCURSION", "ARMOR_CONCENTRATION"
+- source_agency: (BSF OP name from config)
+- grading: Use from event summary
 - str: (count with qualifier like "approximately 11-13 vehicles")
-- long: (76.1-76.5)
+- long: (76.0-76.6)
 - lat: (34.4-34.7)
 - ht: (3000-5000)
 - e: (383000-385000)
 - n: (3815000-3820000)
 - zone: "43S"
-- input: (observation method, e.g., "Visual observation with binoculars")
+- input: (observation method from summary)
 - description: (narrative style, 3-4 sentences with sensory details)
-- upload_time: "{date} HH:MM" (10-45 min after observation)
-- correlation_id
+- upload_time: "{date} HH:MM" (from reporting time)
+- correlation_id: (CRITICAL - MUST match corr_id)
 
-Return JSON: {{"tacint_records": [... 6 records ...]}}
-"""
+Return JSON: {{"tacint_records": [... {len(events_summary)} records with correlation_id ...]}}"""
         
         return prompt

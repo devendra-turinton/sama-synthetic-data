@@ -1,208 +1,216 @@
 import os
 import json
 import logging
-from typing import Dict, List, Any
+from typing import Dict, Any
 
 from utils.anthropic_client import AnthropicClient
-from config import OUTPUT_DIR
+from config import OUTPUT_DIR, ANTHROPIC_API_KEY, MODEL_CONFIG
 
-# Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 class ReferenceDataGenerator:
-    """Generate reference data for the SAMA database."""
+    """Generate military classification reference data"""
     
     def __init__(self):
-        self.client = AnthropicClient()
+        self.client = AnthropicClient(
+            api_key=ANTHROPIC_API_KEY,
+            model=MODEL_CONFIG["model"],
+            max_tokens=MODEL_CONFIG["max_tokens"],
+            temperature=MODEL_CONFIG["temperature"]
+        )
     
+    def generate_all_reference_data(self) -> Dict[str, Any]:
+        """Generate all reference data, with fallback to cached or minimal data"""
+        
+        reference_data_path = os.path.join(OUTPUT_DIR, "reference_data_complete.json")
+        
+        # Try to load cached reference data
+        if os.path.exists(reference_data_path):
+            logger.info("Loading cached reference data...")
+            try:
+                with open(reference_data_path, 'r') as f:
+                    reference_data = json.load(f)
+                logger.info("✓ Reference data loaded from cache")
+                return reference_data
+            except Exception as e:
+                logger.warning(f"Failed to load cached data: {e}")
+        
+        # Generate new reference data
+        logger.info("Generating new reference data...")
+        
+        try:
+            reference_data = {
+                "activity_classification": self.generate_activity_classification(),
+                "target_classification": self.generate_target_classification(),
+                "incident_classification": self.generate_incident_classification()
+            }
+            
+            # Save for future use
+            with open(reference_data_path, 'w') as f:
+                json.dump(reference_data, f, indent=2)
+            
+            logger.info("✓ Reference data generated and cached")
+            return reference_data
+            
+        except Exception as e:
+            logger.error(f"Failed to generate reference data: {e}")
+            logger.info("Using minimal fallback reference data...")
+            return self._get_fallback_reference_data()
+    
+
     def generate_activity_classification(self) -> Dict[str, Any]:
-        """Generate activity classification hierarchy."""
-        
-        prompt = """
-        Generate a comprehensive military activity classification hierarchy for an intelligence system.
-        
-        The classification should include three levels:
-        1. activity_type (main categories)
-        2. activity_sub_type (subcategories under each type)
-        3. activity_classification (specific classifications under each sub-type)
-        
-        Each classification should include:
-        - id: A unique identifier (integer)
-        - name: Descriptive name of the category
-        - description: Detailed explanation
-        - img_path: A placeholder path to a symbol (format: /symbols/activity/{type}/{subtype}/{classification}.svg)
-        
-        The activities should cover the full spectrum of military operations relevant to border monitoring, including:
-        - Movement activities (foot patrols, vehicle movements, etc.)
-        - Construction activities (defensive positions, infrastructure, etc.)
-        - Combat activities (firing, engagement, etc.)
-        - Intelligence activities (reconnaissance, surveillance, etc.)
-        - Support activities (logistics, communications, etc.)
-        
-        Format the response as a JSON object with this structure:
-        {
-          "activity_types": [
-            {
-              "id": 1,
-              "name": "MOVEMENT",
-              "description": "Description of movement activity",
-              "img_path": "/symbols/activity/movement.svg",
-              "activity_sub_types": [
-                {
-                  "id": 101,
-                  "name": "FOOT_PATROL",
-                  "description": "Description of foot patrol",
-                  "img_path": "/symbols/activity/movement/foot_patrol.svg",
-                  "activity_classifications": [
-                    {
-                      "id": 10101,
-                      "name": "RECONNAISSANCE_PATROL",
-                      "description": "Description of reconnaissance patrol",
-                      "img_path": "/symbols/activity/movement/foot_patrol/reconnaissance.svg"
-                    },
-                    // More classifications...
-                  ]
-                },
-                // More sub-types...
+      """Generate activity classification hierarchy"""
+      
+      # ULTRA EXPLICIT prompt
+      prompt = """YOUR RESPONSE MUST START WITH { AND END WITH }
+
+  DO NOT write "Here is the JSON:" or any other text before the JSON.
+  DO NOT write any explanations after the JSON.
+
+  Generate this exact structure (replace my examples with your content):
+
+  {"activity_types":[{"id":1,"name":"MOVEMENT","description":"Troop and equipment movement operations","img_path":"/symbols/activity/movement.svg","activity_sub_types":[{"id":101,"name":"FOOT_PATROL","description":"Infantry movement on foot","img_path":"/symbols/activity/movement/foot_patrol.svg","activity_classifications":[{"id":10101,"name":"RECONNAISSANCE_PATROL","description":"Small unit reconnaissance mission","img_path":"/symbols/activity/movement/foot_patrol/reconnaissance.svg"},{"id":10102,"name":"COMBAT_PATROL","description":"Armed patrol seeking engagement","img_path":"/symbols/activity/movement/foot_patrol/combat.svg"}]},{"id":102,"name":"VEHICULAR","description":"Vehicle-based movement","img_path":"/symbols/activity/movement/vehicular.svg","activity_classifications":[{"id":10201,"name":"TACTICAL_DEPLOYMENT","description":"Tactical vehicle deployment","img_path":"/symbols/activity/movement/vehicular/tactical.svg"},{"id":10202,"name":"LOGISTICS_CONVOY","description":"Supply and logistics movement","img_path":"/symbols/activity/movement/vehicular/logistics.svg"}]}]}]}
+
+  Generate 5 activity types: MOVEMENT, COMBAT, CONSTRUCTION, RECONNAISSANCE, LOGISTICS
+  Each with 3 sub-types
+  Each sub-type with 2-3 classifications
+
+  Your response must be valid JSON starting with { and ending with }. NO OTHER TEXT."""
+      
+      try:
+          response = self.client.generate_structured_data(prompt)
+          logger.info("✓ Activity classification generated")
+          return response
+      except Exception as e:
+          logger.error(f"Failed to generate activity classification: {e}")
+          return {
+              "activity_types": [
+                  {
+                      "id": 1,
+                      "name": "MOVEMENT",
+                      "description": "Troop and equipment movement",
+                      "img_path": "/symbols/activity/movement.svg",
+                      "activity_sub_types": [
+                          {
+                              "id": 101,
+                              "name": "VEHICULAR",
+                              "description": "Vehicle-based movement",
+                              "img_path": "/symbols/activity/movement/vehicular.svg",
+                              "activity_classifications": [
+                                  {
+                                      "id": 10101,
+                                      "name": "TACTICAL_DEPLOYMENT",
+                                      "description": "Tactical vehicle deployment",
+                                      "img_path": "/symbols/activity/movement/vehicular/tactical.svg"
+                                  }
+                              ]
+                          }
+                      ]
+                  }
               ]
-            },
-            // More activity types...
-          ]
-        }
-        
-        CREATE AT LEAST 5 ACTIVITY TYPES, WITH AT LEAST 3 SUB-TYPES EACH, AND AT LEAST 2 CLASSIFICATIONS PER SUB-TYPE.
-        ONLY RETURN THE JSON OBJECT WITH NO ADDITIONAL TEXT OR EXPLANATIONS.
-        """
-        
-        logger.info("Generating activity classification hierarchy...")
-        
-        response = self.client.generate_structured_data(prompt)
-        
-        output_path = os.path.join(OUTPUT_DIR, "activity_classification.json")
-        with open(output_path, 'w') as f:
-            json.dump(response, f, indent=2)
-        
-        logger.info(f"Activity classification saved to: {output_path}")
-        
-        return response
-    
+          }
+
+
     def generate_target_classification(self) -> Dict[str, Any]:
-        """Generate target classification hierarchy."""
+        """Generate target classification hierarchy"""
         
-        prompt = """
-        Generate a comprehensive military target classification hierarchy for an intelligence system.
-        
-        The classification should include three levels:
-        1. target_type (main categories)
-        2. target_sub_type (subcategories under each type)
-        3. target_classification (specific classifications under each sub-type)
-        
-        Each classification should include:
-        - id: A unique identifier (integer)
-        - name: Descriptive name of the category
-        - description: Detailed explanation
-        - img_path: A placeholder path to a symbol (format: /symbols/target/{type}/{subtype}/{classification}.svg)
-        
-        The targets should cover all potential military and related entities relevant to border monitoring, including:
-        - Personnel (infantry, special forces, civilian, etc.)
-        - Vehicles (armored, transport, logistics, etc.)
-        - Aircraft (helicopters, drones, fighters, etc.)
-        - Installations (command posts, radar sites, artillery positions, etc.)
-        - Vessels (patrol boats, fishing boats, etc.)
-        
-        Format the response as a JSON object with this structure:
+        prompt = """Generate military target classification hierarchy for Kargil War.
+
+Include these main types:
+1. PERSONNEL (infantry, special forces, support troops)
+2. VEHICLE (armored, transport, logistics)
+3. AIRCRAFT (fighters, helicopters, UAVs)
+4. INSTALLATION (command posts, radar sites, artillery positions)
+5. EQUIPMENT (weapons, communications, supplies)
+
+Must include Pakistani equipment:
+- Al-Khalid MBT, T-59/T-69 tanks
+- F-16, Mirage III/V aircraft
+- 130mm artillery, 122mm howitzers
+
+Return ONLY valid JSON in format:
+{
+  "target_types": [
+    {
+      "id": 1,
+      "name": "VEHICLE",
+      "description": "Military vehicles",
+      "img_path": "/symbols/target/vehicle.svg",
+      "target_sub_types": [
         {
-          "target_types": [
+          "id": 101,
+          "name": "ARMORED",
+          "description": "Armored fighting vehicles",
+          "img_path": "/symbols/target/vehicle/armored.svg",
+          "target_classifications": [
             {
-              "id": 1,
-              "name": "PERSONNEL",
-              "description": "Human military or civilian personnel",
-              "img_path": "/symbols/target/personnel.svg",
-              "target_sub_types": [
-                {
-                  "id": 101,
-                  "name": "INFANTRY",
-                  "description": "Ground combat troops",
-                  "img_path": "/symbols/target/personnel/infantry.svg",
-                  "target_classifications": [
-                    {
-                      "id": 10101,
-                      "name": "LIGHT_INFANTRY",
-                      "description": "Light infantry units",
-                      "img_path": "/symbols/target/personnel/infantry/light_infantry.svg"
-                    },
-                    // More classifications...
-                  ]
-                },
-                // More sub-types...
-              ]
-            },
-            // More target types...
+              "id": 10101,
+              "name": "MAIN_BATTLE_TANK",
+              "description": "Main battle tanks like Al-Khalid",
+              "img_path": "/symbols/target/vehicle/armored/mbt.svg"
+            }
           ]
         }
+      ]
+    }
+  ]
+}
+
+Generate at least 5 target types, 3 sub-types each, 2 classifications per sub-type."""
         
-        SPECIFICALLY INCLUDE CLASSIFICATIONS FOR PAKISTANI AND CHINESE MILITARY EQUIPMENT AND UNITS.
-        CREATE AT LEAST 5 TARGET TYPES, WITH AT LEAST 3 SUB-TYPES EACH, AND AT LEAST 2 CLASSIFICATIONS PER SUB-TYPE.
-        ONLY RETURN THE JSON OBJECT WITH NO ADDITIONAL TEXT OR EXPLANATIONS.
-        """
-        
-        logger.info("Generating target classification hierarchy...")
-        
-        response = self.client.generate_structured_data(prompt)
-        
-        output_path = os.path.join(OUTPUT_DIR, "target_classification.json")
-        with open(output_path, 'w') as f:
-            json.dump(response, f, indent=2)
-        
-        logger.info(f"Target classification saved to: {output_path}")
-        
-        return response
+        try:
+            response = self.client.generate_structured_data(prompt)
+            logger.info("✓ Target classification generated")
+            return response
+        except Exception as e:
+            logger.error(f"Failed to generate target classification: {e}")
+            return {"target_types": []}
     
     def generate_incident_classification(self) -> Dict[str, Any]:
-        """Generate incident classification hierarchy."""
+        """Generate incident classification hierarchy"""
         
         prompt = """
-        Generate a comprehensive military incident classification hierarchy for an intelligence system.
+        Generate military incident classification hierarchy for Kargil War e_sitrep reporting.
 
-        The classification should include three levels:
-        1. incident_type (main categories)
-        2. incident_sub_type (subcategories under each type)
-        3. incident_classification (specific classifications under each sub-type)
+        Include these main types:
+        1. BORDER_VIOLATION (troop incursion, vehicle crossing, aerial intrusion)
+        2. CEASEFIRE_VIOLATION (small arms fire, artillery fire, mortar fire)
+        3. CONFRONTATION (face-off, stone pelting, physical altercation)
+        4. FORCE_POSTURING (equipment buildup, troop deployment, exercises)
+        5. INTELLIGENCE_ACTIVITY (reconnaissance, surveillance, probing)
 
-        Each classification should include:
-        - id: A unique identifier (integer)
-        - name: Descriptive name of the category
-        - description: Detailed explanation
-        - img_path: A placeholder path to a symbol (format: /symbols/incident/{type}/{subtype}/{classification}.svg)
+        STRICTLY FOLLOW THESE RULES FOR THE JSON OUTPUT:
+        - Return ONLY a single, valid JSON object, no explanations, markdown, code blocks, or extra text before or after the JSON.
+        - The JSON must be minified (no extra whitespace or indentation).
+        - Do not include any trailing commas, comments, or omitted punctuation.
+        - Double-check that all brackets, braces, and commas are present and correct.
+        - Ensure all string values are properly quoted and terminated.
+        - Do not use '//' or any other comment syntax in the output.
+        - Do not include any fields with unterminated strings.
+        - Do not include any extra fields or text outside the JSON object.
+        - If you are unsure, validate the JSON before returning.
 
-        The incidents should cover all potential military incidents relevant to border monitoring, including:
-        - Border violations (incursions, crossings, etc.)
-        - Ceasefire violations (different types of firing incidents)
-        - Confrontations (face-offs, stone pelting, physical altercations)
-        - Intelligence activities (reconnaissance, surveillance, etc.)
-        - Construction incidents (infrastructure development)
-        - Force posturing (exercises, deployments, etc.)
-
-        Format the response as a JSON object with this structure:
+        Return ONLY valid JSON in format:
         {
           "incident_types": [
             {
               "id": 1,
               "name": "BORDER_VIOLATION",
-              "description": "Any crossing or violation of the established border",
+              "description": "Crossing or violation of established border",
               "img_path": "/symbols/incident/border_violation.svg",
               "incident_sub_types": [
                 {
                   "id": 101,
                   "name": "TROOP_INCURSION",
-                  "description": "Military personnel crossing the border",
+                  "description": "Military personnel crossing border",
                   "img_path": "/symbols/incident/border_violation/troop_incursion.svg",
                   "incident_classifications": [
                     {
                       "id": 10101,
                       "name": "ARMED_INCURSION",
-                      "description": "Armed troops crossing the border",
+                      "description": "Armed troops crossing border",
                       "img_path": "/symbols/incident/border_violation/troop_incursion/armed.svg"
                     }
                   ]
@@ -212,47 +220,96 @@ class ReferenceDataGenerator:
           ]
         }
 
-        INCLUDE INCIDENTS SPECIFIC TO BOTH INDIA-PAKISTAN AND INDIA-CHINA BORDERS.
-        CREATE AT LEAST 5 INCIDENT TYPES, WITH AT LEAST 3 SUB-TYPES EACH, AND AT LEAST 2 CLASSIFICATIONS PER SUB-TYPE.
-
-        STRICTLY FOLLOW THESE RULES FOR THE JSON OUTPUT:
-        - Only return the raw JSON object, no comments, no explanations, no markdown, no code blocks.
-        - The JSON must be minified (no extra whitespace or indentation).
-        - Do not include any trailing commas, comments, or omitted punctuation.
-        - Double-check that all brackets, braces, and commas are present and correct.
-        - Ensure all string values are properly quoted and terminated.
-        - Do not use '//' or any other comment syntax in the output.
-        - Do not include any fields with unterminated strings.
-        - Do not include any extra fields or text outside the JSON object.
-        - If you are unsure, validate the JSON before returning.
+        Generate at least 5 incident types, 3 sub-types each, 2 classifications per sub-type.
         """
         
-        logger.info("Generating incident classification hierarchy...")
-        
-        response = self.client.generate_structured_data(prompt)
-        
-        output_path = os.path.join(OUTPUT_DIR, "incident_classification.json")
-        with open(output_path, 'w') as f:
-            json.dump(response, f, indent=2)
-        
-        logger.info(f"Incident classification saved to: {output_path}")
-        
-        return response
+        try:
+            response = self.client.generate_structured_data(prompt)
+            logger.info("✓ Incident classification generated")
+            return response
+        except Exception as e:
+            logger.error(f"Failed to generate incident classification: {e}")
+            return {"incident_types": []}
     
-    def generate_all_reference_data(self) -> Dict[str, Any]:
-        """Generate all reference data classification hierarchies."""
-        
-        reference_data = {
-            "activity_classification": self.generate_activity_classification(),
-            "target_classification": self.generate_target_classification(),
-            "incident_classification": self.generate_incident_classification()
+    def _get_fallback_reference_data(self) -> Dict[str, Any]:
+        """Minimal fallback reference data if generation fails"""
+        return {
+            "activity_classification": {
+                "activity_types": [
+                    {
+                        "id": 1,
+                        "name": "MOVEMENT",
+                        "description": "Troop and equipment movement",
+                        "img_path": "/symbols/activity/movement.svg",
+                        "activity_sub_types": [
+                            {
+                                "id": 101,
+                                "name": "VEHICULAR",
+                                "description": "Vehicle-based movement",
+                                "img_path": "/symbols/activity/movement/vehicular.svg",
+                                "activity_classifications": [
+                                    {
+                                        "id": 10101,
+                                        "name": "TACTICAL_DEPLOYMENT",
+                                        "description": "Tactical vehicle deployment",
+                                        "img_path": "/symbols/activity/movement/vehicular/tactical.svg"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            },
+            "target_classification": {
+                "target_types": [
+                    {
+                        "id": 1,
+                        "name": "VEHICLE",
+                        "description": "Military vehicles",
+                        "img_path": "/symbols/target/vehicle.svg",
+                        "target_sub_types": [
+                            {
+                                "id": 101,
+                                "name": "ARMORED",
+                                "description": "Armored vehicles",
+                                "img_path": "/symbols/target/vehicle/armored.svg",
+                                "target_classifications": [
+                                    {
+                                        "id": 10101,
+                                        "name": "MAIN_BATTLE_TANK",
+                                        "description": "Main battle tanks",
+                                        "img_path": "/symbols/target/vehicle/armored/mbt.svg"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            },
+            "incident_classification": {
+                "incident_types": [
+                    {
+                        "id": 1,
+                        "name": "BORDER_VIOLATION",
+                        "description": "Border crossing incidents",
+                        "img_path": "/symbols/incident/border_violation.svg",
+                        "incident_sub_types": [
+                            {
+                                "id": 101,
+                                "name": "TROOP_INCURSION",
+                                "description": "Troop border crossings",
+                                "img_path": "/symbols/incident/border_violation/troop.svg",
+                                "incident_classifications": [
+                                    {
+                                        "id": 10101,
+                                        "name": "ARMED_INCURSION",
+                                        "description": "Armed border crossing",
+                                        "img_path": "/symbols/incident/border_violation/troop/armed.svg"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
         }
-        
-        # Save combined reference data
-        output_path = os.path.join(OUTPUT_DIR, "reference_data_complete.json")
-        with open(output_path, 'w') as f:
-            json.dump(reference_data, f, indent=2)
-        
-        logger.info(f"Complete reference data saved to: {output_path}")
-        
-        return reference_data
