@@ -107,151 +107,151 @@ class SAMADataGenerator:
             # ================================================================
             # STEP 3: ELINT DATA
             # ================================================================
-            # logger.info("\n" + "="*80)
-            # logger.info("STEP 3: ELINT DATA (Electronic Intelligence)")
-            # logger.info("="*80)
+            logger.info("\n" + "="*80)
+            logger.info("STEP 3: ELINT DATA (Electronic Intelligence)")
+            logger.info("="*80)
             
-            # elint_data = self.elint_generator.generate_elint_data(scenario)
-            # self.generation_stats["elint"] = {
-            #     "total_records": len(elint_data),
-            #     "records_per_day": len(elint_data) / scenario["total_days"] if scenario["total_days"] > 0 else 0
-            # }
-            # logger.info(f"✓ ELINT complete: {len(elint_data)} records")
+            elint_data = self.elint_generator.generate_elint_data(scenario)
+            self.generation_stats["elint"] = {
+                "total_records": len(elint_data),
+                "records_per_day": len(elint_data) / scenario["total_days"] if scenario["total_days"] > 0 else 0
+            }
+            logger.info(f"✓ ELINT complete: {len(elint_data)} records")
             
             # ================================================================
             # STEP 4: IMINT DATA
             # ================================================================
-            # logger.info("\n" + "="*80)
-            # logger.info("STEP 4: IMINT DATA (Imagery Intelligence)")
-            # logger.info("="*80)
+            logger.info("\n" + "="*80)
+            logger.info("STEP 4: IMINT DATA (Imagery Intelligence)")
+            logger.info("="*80)
             
-            # imint_data = self.imint_generator.generate_imint_data(scenario)
-            # self.generation_stats["imint"] = {
-            #     "total_records": len(imint_data),
-            #     "records_per_day": len(imint_data) / scenario["total_days"] if scenario["total_days"] > 0 else 0
-            # }
-            # logger.info(f"✓ IMINT complete: {len(imint_data)} records")
+            imint_data = self.imint_generator.generate_imint_data(scenario)
+            self.generation_stats["imint"] = {
+                "total_records": len(imint_data),
+                "records_per_day": len(imint_data) / scenario["total_days"] if scenario["total_days"] > 0 else 0
+            }
+            logger.info(f"✓ IMINT complete: {len(imint_data)} records")
             
             # ================================================================
             # STEP 5: TACINT DATA
             # ================================================================
-            # logger.info("\n" + "="*80)
-            # logger.info("STEP 5: TACINT DATA (Tactical Intelligence)")
-            # logger.info("="*80)
+            logger.info("\n" + "="*80)
+            logger.info("STEP 5: TACINT DATA (Tactical Intelligence)")
+            logger.info("="*80)
             
-            # tacint_data = self.tacint_generator.generate_tacint_data(scenario)
-            # self.generation_stats["tacint"] = {
-            #     "total_records": len(tacint_data),
-            #     "records_per_day": len(tacint_data) / scenario["total_days"] if scenario["total_days"] > 0 else 0
-            # }
-            # logger.info(f"✓ TACINT complete: {len(tacint_data)} records")
+            tacint_data = self.tacint_generator.generate_tacint_data(scenario)
+            self.generation_stats["tacint"] = {
+                "total_records": len(tacint_data),
+                "records_per_day": len(tacint_data) / scenario["total_days"] if scenario["total_days"] > 0 else 0
+            }
+            logger.info(f"✓ TACINT complete: {len(tacint_data)} records")
             
             # ================================================================
             # STEP 6: DATA VALIDATION (Pre-Fusion)
             # ================================================================
-            # logger.info("\n" + "="*80)
-            # logger.info("STEP 6: DATA VALIDATION (Correlation Consistency)")
-            # logger.info("="*80)
+            logger.info("\n" + "="*80)
+            logger.info("STEP 6: DATA VALIDATION (Correlation Consistency)")
+            logger.info("="*80)
             
-            # validation_results = self._validate_data(
-            #     scenario, elint_data, imint_data, tacint_data, []
-            # )
+            validation_results = self._validate_data(
+                scenario, elint_data, imint_data, tacint_data, []
+            )
             
-            # if validation_results["has_critical_errors"]:
-            #     logger.error("❌ Critical validation errors detected!")
-            #     logger.error("Review errors before proceeding to fusion")
-            #     self._print_validation_report(validation_results)
+            if validation_results["has_critical_errors"]:
+                logger.error("❌ Critical validation errors detected!")
+                logger.error("Review errors before proceeding to fusion")
+                self._print_validation_report(validation_results)
                 
-            #     # Ask user to continue or abort
-            #     if not self._confirm_continue_after_errors():
-            #         logger.error("Data generation aborted due to validation errors")
-            #         return self._create_failure_response(validation_results)
-            # else:
-            #     logger.info("✓ Data validation passed")
+                # Ask user to continue or abort
+                if not self._confirm_continue_after_errors():
+                    logger.error("Data generation aborted due to validation errors")
+                    return self._create_failure_response(validation_results)
+            else:
+                logger.info("✓ Data validation passed")
             
             # ================================================================
             # STEP 7: ENEMY ACTIVITY (FUSION)
             # ================================================================
-            # logger.info("\n" + "="*80)
-            # logger.info("STEP 7: ENEMY ACTIVITY (Intelligence Fusion)")
-            # logger.info("="*80)
+            logger.info("\n" + "="*80)
+            logger.info("STEP 7: ENEMY ACTIVITY (Intelligence Fusion)")
+            logger.info("="*80)
             
-            # enemy_activity_data = self.enemy_activity_generator.generate_enemy_activity_data(
-            #     scenario, elint_data, imint_data, tacint_data
-            # )
-            # self.generation_stats["enemy_activity"] = {
-            #     "total_records": len(enemy_activity_data),
-            #     "records_per_day": len(enemy_activity_data) / scenario["total_days"] if scenario["total_days"] > 0 else 0
-            # }
-            # logger.info(f"✓ Enemy Activity fusion complete: {len(enemy_activity_data)} records")
+            enemy_activity_data = self.enemy_activity_generator.generate_enemy_activity_data(
+                scenario, elint_data, imint_data, tacint_data
+            )
+            self.generation_stats["enemy_activity"] = {
+                "total_records": len(enemy_activity_data),
+                "records_per_day": len(enemy_activity_data) / scenario["total_days"] if scenario["total_days"] > 0 else 0
+            }
+            logger.info(f"✓ Enemy Activity fusion complete: {len(enemy_activity_data)} records")
             
             # ================================================================
             # STEP 8: SITREP DATA
             # ================================================================
-            # logger.info("\n" + "="*80)
-            # logger.info("STEP 8: SITREP DATA (Electronic Situation Reports)")
-            # logger.info("="*80)
+            logger.info("\n" + "="*80)
+            logger.info("STEP 8: SITREP DATA (Electronic Situation Reports)")
+            logger.info("="*80)
             
-            # sitrep_data = self.sitrep_generator.generate_sitrep_data(
-            #     scenario, enemy_activity_data
-            # )
-            # self.generation_stats["sitrep"] = {
-            #     "total_records": len(sitrep_data),
-            #     "records_per_day": len(sitrep_data) / scenario["total_days"] if scenario["total_days"] > 0 else 0
-            # }
-            # logger.info(f"✓ SITREP complete: {len(sitrep_data)} records")
+            sitrep_data = self.sitrep_generator.generate_sitrep_data(
+                scenario, enemy_activity_data
+            )
+            self.generation_stats["sitrep"] = {
+                "total_records": len(sitrep_data),
+                "records_per_day": len(sitrep_data) / scenario["total_days"] if scenario["total_days"] > 0 else 0
+            }
+            logger.info(f"✓ SITREP complete: {len(sitrep_data)} records")
             
             # ================================================================
             # STEP 9: FINAL VALIDATION
             # ================================================================
-            # logger.info("\n" + "="*80)
-            # logger.info("STEP 9: FINAL VALIDATION (Complete Dataset)")
-            # logger.info("="*80)
+            logger.info("\n" + "="*80)
+            logger.info("STEP 9: FINAL VALIDATION (Complete Dataset)")
+            logger.info("="*80)
             
-            # final_validation = self._validate_data(
-            #     scenario, elint_data, imint_data, tacint_data, 
-            #     enemy_activity_data, sitrep_data
-            # )
+            final_validation = self._validate_data(
+                scenario, elint_data, imint_data, tacint_data, 
+                enemy_activity_data, sitrep_data
+            )
             
-            # self._print_validation_report(final_validation)
+            self._print_validation_report(final_validation)
             
             # ================================================================
             # STEP 10: EXPORT TO SQL
             # ================================================================
-            # logger.info("\n" + "="*80)
-            # logger.info("STEP 10: EXPORT TO SQL")
-            # logger.info("="*80)
+            logger.info("\n" + "="*80)
+            logger.info("STEP 10: EXPORT TO SQL")
+            logger.info("="*80)
             
-            # self._export_to_sql(
-            #     scenario, elint_data, imint_data, tacint_data, 
-            #     enemy_activity_data, sitrep_data
-            # )
+            self._export_to_sql(
+                scenario, elint_data, imint_data, tacint_data, 
+                enemy_activity_data, sitrep_data
+            )
             
             # ================================================================
             # GENERATION COMPLETE
             # ================================================================
-            # generation_time = datetime.now() - self.generation_start_time
-            # self.generation_stats["generation_time_seconds"] = generation_time.total_seconds()
+            generation_time = datetime.now() - self.generation_start_time
+            self.generation_stats["generation_time_seconds"] = generation_time.total_seconds()
             
-            # self._print_completion_summary(
-            #     scenario, elint_data, imint_data, tacint_data, 
-            #     enemy_activity_data, sitrep_data, generation_time
-            # )
+            self._print_completion_summary(
+                scenario, elint_data, imint_data, tacint_data, 
+                enemy_activity_data, sitrep_data, generation_time
+            )
             
-            # return {
-            #     "status": "success",
-            #     "scenario": scenario,
-            #     "data": {
-            #         "elint": elint_data,
-            #         "imint": imint_data,
-            #         "tacint": tacint_data,
-            #         "enemy_activity": enemy_activity_data,
-            #         "sitrep": sitrep_data
-            #     },
-            #     "statistics": self.generation_stats,
-            #     "validation": final_validation,
-            #     "generation_time": str(generation_time)
-            # }
+            return {
+                "status": "success",
+                "scenario": scenario,
+                "data": {
+                    "elint": elint_data,
+                    "imint": imint_data,
+                    "tacint": tacint_data,
+                    "enemy_activity": enemy_activity_data,
+                    "sitrep": sitrep_data
+                },
+                "statistics": self.generation_stats,
+                "validation": final_validation,
+                "generation_time": str(generation_time)
+            }
             
         except KeyboardInterrupt:
             logger.warning("\n\n⚠️  Generation interrupted by user")

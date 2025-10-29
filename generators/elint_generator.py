@@ -1,21 +1,22 @@
 import os
 import json
 import logging
+import random
 from typing import Dict, List, Any
 
 from utils.anthropic_client import AnthropicClient
 from utils.correlation_manager import CorrelationManager
 from config import (OUTPUT_DIR, OBSERVING_UNITS, FORMATION_MAPPING, 
-                   ANTHROPIC_API_KEY, MODEL_CONFIG)
+                   ANTHROPIC_API_KEY, MODEL_CONFIG, MILITARY_INTELLIGENCE_LANGUAGE,
+                   GEOGRAPHIC_AREAS_ENHANCED)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
 class ElintGenerator:
-    """Generate ELINT (Electronic Intelligence) data with proper correlation"""
+    """Generate ELINT (Electronic Intelligence) data with proper correlation and authentic language"""
     
-    # System prompt - sent once, reused for all calls
     SYSTEM_PROMPT = """You are an ELINT (Electronic Intelligence) analyst generating detection records.
 
 CRITICAL RULES:
@@ -28,34 +29,48 @@ CRITICAL RULES:
 7. ALWAYS provide realistic coordinates within Kargil sector (lat 34.4-34.8, long 75.7-76.5)
 8. ALWAYS provide realistic non-zero values for all fields
 9. CRITICAL: Include correlation_id field in EVERY record, matching the corr_id from input
+10. Use authentic military communication terminology and technical language
+11. Use specific location names from the provided location data
 
 PAKISTANI EQUIPMENT SIGNATURES:
-- Communications: TRC-20H Tactical Radio (VHF), HF/VHF Command Nets
-- Radars: AN/TPS-43 (surveillance), Crotale Fire Control
+- Communications: TRC-20H Tactical Radio (VHF 30-76 MHz), HF Command Nets (3-30 MHz)
+- Radars: AN/TPS-43 (surveillance), Crotale Fire Control, Type 305 early warning
+- Data Links: Encrypted tactical data networks
+
+TECHNICAL LANGUAGE REQUIREMENTS:
+- "Intercepted encrypted voice traffic on VHF frequency XX.XXX MHz"
+- "Direction finding triangulation places emission source at grid XXXXXX XXXXXXX"
+- "Burst transmission pattern consistent with [equipment type] tactical radio"
+- "Signal strength -XX dBm indicates transmitter range approximately XX.X kilometers"
+- "Frequency hopping sequence detected across XX-XX MHz band"
+- "Radio net discipline suggests [unit-level] command and control"
+- "Traffic analysis indicates preparation for [tactical activity]"
+- "COMSEC protocols observed include [security measures]"
+- "Call sign patterns consistent with [unit type] operating procedures"
 
 EXAMPLE RECORD:
 {
   "date": "1999-06-15",
   "from_time": "08:05",
   "to_time": "08:48",
-  "en": "Pakistani XII Corps",
-  "location": "Drass Sector",
+  "en": "Pakistani XII Corps - 12th Northern Light Infantry Bravo Company",
+  "location": "Tololing Summit",
   "range": "12.5",
   "emitter_type": "COMMUNICATIONS",
   "emitter_name": "TRC-20H Tactical Radio",
-  "frequency": "345.2",
-  "long": 75.7523,
-  "lat": 34.4251,
-  "ht": 3380,
+  "frequency": "47.250",
+  "long": 76.1158,
+  "lat": 34.5447,
+  "ht": 4590,
   "e": 384251,
   "n": 3817136,
   "zone": "43S",
-  "description": "Encrypted VHF burst transmissions detected...",
+  "description": "Intercepted encrypted VHF burst transmissions on frequency 47.250 MHz originating from Tololing Summit at 0805 hours local time. Direction finding analysis utilizing multiple monitoring stations (DF accuracy ±500m) places emission source at grid reference 384251 3817136, elevation 4590 meters. Signal analysis identifies emission pattern consistent with Pakistani TRC-20H tactical radio operating in secure voice mode with frequency hopping enabled. Transmission duration 43 minutes indicates sustained tactical communications, likely battalion-level coordination based on traffic volume and net discipline observed. Signal strength -78 dBm suggests transmitter operating at medium power (5-10W) at range of approximately 12.5 kilometers from primary intercept site. Communications security (COMSEC) protocols indicate professional military operation. Traffic analysis suggests preparation for tactical movement or position adjustment based on increased message frequency and call sign patterns. SIGINT assessment: Unit demonstrates secure communications capability and tactical proficiency. Intercepted traffic pattern correlates with known 12th Northern Light Infantry operating procedures.",
   "correlation_id": "CORR_0042"
 }
 
-FORMAT: Return JSON with "elint_records" array containing EXACTLY 6 records.
-CRITICAL: Every record MUST include the correlation_id field!"""
+FORMAT: Return JSON with "elint_records" array containing EXACTLY the requested number of records.
+CRITICAL: Every record MUST include the correlation_id field matching the input!"""
     
     def __init__(self, correlation_manager: CorrelationManager):
         self.client = AnthropicClient(
@@ -72,7 +87,7 @@ CRITICAL: Every record MUST include the correlation_id field!"""
         """Generate ELINT data for complete scenario"""
         
         logger.info("="*80)
-        logger.info("GENERATING ELINT DATA")
+        logger.info("GENERATING ELINT DATA (Electronic Intelligence)")
         logger.info("="*80)
         
         all_elint_records = []
@@ -101,7 +116,7 @@ CRITICAL: Every record MUST include the correlation_id field!"""
                 continue
             
             # Generate ELINT records for this day
-            prompt = self._create_compact_prompt(date, correlation_packages)
+            prompt = self._create_enhanced_elint_prompt(date, correlation_packages)
             
             try:
                 batch_response = self.client.generate_structured_data(
@@ -163,8 +178,8 @@ CRITICAL: Every record MUST include the correlation_id field!"""
         
         return all_elint_records
     
-    def _create_compact_prompt(self, date: str, correlation_packages: List[Dict]) -> str:
-        """Create minimal prompt with event summaries"""
+    def _create_enhanced_elint_prompt(self, date: str, correlation_packages: List[Dict]) -> str:
+        """Create enhanced prompt with military language and technical details"""
         
         events_summary = []
         for pkg in correlation_packages:
@@ -183,40 +198,122 @@ CRITICAL: Every record MUST include the correlation_id field!"""
                 "activity": gt["event_type"],
                 "location": gt["location"],
                 "location_name": gt.get("location_name", ""),
-                "equipment": gt.get("equipment_involved", [])
+                "equipment": gt.get("equipment_involved", []),
+                "strength": gt.get("strength", ""),
+                "description_context": gt.get("description", "")[:200]
             })
+        
+        # Get technical language samples
+        observation_methods = random.sample(
+            MILITARY_INTELLIGENCE_LANGUAGE.get('observation_methods', []),
+            min(3, len(MILITARY_INTELLIGENCE_LANGUAGE.get('observation_methods', [])))
+        )
+        
+        equipment_pak = random.sample(
+            MILITARY_INTELLIGENCE_LANGUAGE.get('equipment_specifics_pakistan', []),
+            min(3, len(MILITARY_INTELLIGENCE_LANGUAGE.get('equipment_specifics_pakistan', [])))
+        )
         
         prompt = f"""Date: {date}
 
-Generate EXACTLY {len(events_summary)} ELINT records for these electronic detections:
+Generate EXACTLY {len(events_summary)} ELINT (Electronic Intelligence) records for these electronic signal detections.
+
+EVENTS TO GENERATE ELINT FOR:
 {json.dumps(events_summary, indent=1)}
 
+TECHNICAL REQUIREMENTS:
+Each ELINT record detects electronic emissions 10-15 minutes BEFORE the physical activity described above.
+Use TECHNICAL language and terminology throughout.
+
+OBSERVATION METHOD EXAMPLES (use similar technical language):
+{chr(10).join(['• ' + om for om in observation_methods])}
+
+EQUIPMENT CONTEXT (for technical descriptions):
+{chr(10).join(['• ' + e for e in equipment_pak])}
+
 Each record must include ALL fields with realistic values (NO ZEROS, NO NULLS):
+
+REQUIRED FIELDS:
 - date: "{date}"
-- from_time: (detection start, e.g., "08:05")
-- to_time: (detection end, e.g., "08:35")
-- en: (enemy unit, e.g., "Pakistani XII Corps")
-- location: (area name, e.g., "Drass Sector")
-- range: (SINGLE number, detection range in km, e.g., "12.5")
-- emitter_type: "COMMUNICATIONS" or "RADAR"
-- emitter_name: (e.g., "TRC-20H Tactical Radio")
-- frequency: (SINGLE number in MHz, e.g., "345.2" NOT "345.2,5.9")
-- long: (longitude 75.7-76.5, e.g., 76.1234)
-- lat: (latitude 34.4-34.8, e.g., 34.5123)
-- ht: (height in meters 3000-5000, e.g., 3350)
-- e: (easting in meters 383000-385000, e.g., 384250)
-- n: (northing in meters 3815000-3820000, e.g., 3817000)
+- from_time: (detection start time, 10-15 min BEFORE event time, format "HH:MM")
+- to_time: (detection end time, format "HH:MM", typically 20-45 minutes duration)
+- en: (enemy unit from actor above, be specific with full unit designation)
+- location: (use location_name from event above)
+- range: (SINGLE number, detection range in km, e.g., "12.5" NOT "12.5,15.2")
+- emitter_type: "COMMUNICATIONS" | "RADAR" | "DATA_LINK" | "NAVIGATION"
+- emitter_name: (specific equipment: "TRC-20H Tactical Radio" | "AN/TPS-43 Surveillance Radar" | "HF Command Net")
+- frequency: (SINGLE number in MHz, e.g., "47.250" NOT "47.250,52.8")
+- long: (longitude from location above, or nearby: 75.7-76.5)
+- lat: (latitude from location above, or nearby: 34.4-34.8)
+- ht: (height in meters, use from location or 3000-5000)
+- e: (easting in meters 383000-385000)
+- n: (northing in meters 3815000-3820000)
 - zone: "43S"
-- description: (2-3 sentences, technical ELINT language)
+- description: (150-250 words, TECHNICAL ELINT language, see requirements below)
 - correlation_id: (CRITICAL - MUST match corr_id from event above)
 
-CRITICAL REQUIREMENTS:
-1. MUST include correlation_id field in EVERY record
-2. Use ONLY SINGLE numeric values (no commas, no lists)
-3. NO visual descriptions (can't see tanks, only electronic signals)
-4. Technical language only
+DESCRIPTION REQUIREMENTS (150-250 words):
+1. Start with technical detection details: "Intercepted encrypted VHF transmissions on frequency X.XXX MHz..."
+2. Include direction finding analysis: "DF triangulation utilizing [number] monitoring stations places emission source at grid..."
+3. Describe signal characteristics: "Signal pattern consistent with [equipment] tactical radio operating in..."
+4. Include technical measurements: "Signal strength -XX dBm indicates transmitter range approximately X.X kilometers..."
+5. Analyze communications security: "Frequency hopping enabled across XX-XX MHz band, encrypted voice mode..."
+6. Assess tactical significance: "Traffic volume and net discipline suggests [unit-level] coordination..."
+7. Analyze traffic patterns: "Increased message frequency characteristic of pre-[activity] coordination..."
+8. Include call sign analysis: "Call sign patterns and network structure consistent with [unit] tactical communications..."
+9. Add SIGINT assessment: "SIGINT assessment: Professional COMSEC practices observed. Unit demonstrates [capability]..."
+10. Correlate with known operations: "Emission characteristics match known [unit] operating procedures for [operation type]..."
+11. Use ONLY technical language - NO visual observations (can't see tanks, only detect signals)
+12. Include specific technical terms: DF accuracy (±500m), signal strength in dBm, frequency hopping, net discipline
+13. Reference the activity context but from ELINT perspective (radio traffic increases before movement)
 
-Return JSON: {{"elint_records": [... {len(events_summary)} records with correlation_id ...]}}"""
+TECHNICAL LANGUAGE TO USE:
+- "Direction finding (DF) analysis utilizing multiple monitoring stations"
+- "Signal strength measured at -XX dBm"
+- "Burst transmission pattern detected"
+- "Frequency hopping sequence observed across XX-XX MHz band"
+- "Encrypted voice traffic on VHF/HF frequencies"
+- "Radio net discipline suggests [unit level] command and control"
+- "Traffic analysis indicates preparation for [tactical activity]"
+- "COMSEC protocols observed include [specific measures]"
+- "Call sign patterns consistent with [unit type]"
+- "Emission pattern correlates with [equipment type] operating procedures"
+- "Transmission duration XX minutes indicates sustained tactical communications"
+- "Network structure consistent with [organizational level] tactical architecture"
+
+CRITICAL REQUIREMENTS:
+1. MUST include correlation_id field in EVERY record matching corr_id from events above
+2. Use ONLY SINGLE numeric values (no commas, no lists) for frequency and range
+3. NO visual descriptions - ELINT cannot see physical objects, only detect electronic signals
+4. Use technical SIGINT terminology throughout
+5. Descriptions must be 150-250 words
+6. Detection time is 10-15 minutes BEFORE the event time listed above
+7. Use exact location name from the event data provided
+
+EXAMPLE (use as style guide, do not copy):
+{{
+  "date": "{date}",
+  "from_time": "07:50",
+  "to_time": "08:35",
+  "en": "Pakistani XII Corps - 12th Northern Light Infantry Bravo Company",
+  "location": "Tololing Summit",
+  "range": "12.5",
+  "emitter_type": "COMMUNICATIONS",
+  "emitter_name": "TRC-20H Tactical Radio",
+  "frequency": "47.250",
+  "long": 76.1158,
+  "lat": 34.5447,
+  "ht": 4590,
+  "e": 384251,
+  "n": 3817136,
+  "zone": "43S",
+  "description": "Intercepted encrypted VHF burst transmissions on frequency 47.250 MHz originating from Tololing Summit at 0750 hours local time. Direction finding analysis utilizing three monitoring stations (DF accuracy ±500m) places emission source at grid reference 384251 3817136, elevation 4590 meters. Signal analysis identifies emission pattern consistent with Pakistani TRC-20H tactical radio operating in secure voice mode with frequency hopping capability enabled across 30-76 MHz band. Transmission duration 45 minutes indicates sustained tactical communications session, likely company-to-battalion coordination based on traffic volume patterns and net discipline observed. Signal strength measured at -78 dBm suggests transmitter operating at medium power setting (5-10W) at range of approximately 12.5 kilometers from primary intercept site. Communications security (COMSEC) protocols include voice encryption and frequency agility, indicating professional military communications discipline. Traffic analysis reveals increased message frequency and compressed transmission times characteristic of pre-movement coordination procedures. Call sign patterns and network structure consistent with 12th Northern Light Infantry battalion tactical communications architecture. SIGINT assessment: Unit demonstrates mature COMSEC practices and tactical communications proficiency. Intercepted traffic pattern and timing correlates with preparation for tactical displacement or offensive operation, as radio traffic typically increases 10-15 minutes prior to physical movement. Emission characteristics match known Pakistani Army tactical radio operating procedures for mountain warfare operations.",
+  "correlation_id": "CORR_0042"
+}}
+
+Return JSON: {{"elint_records": [... {len(events_summary)} records with correlation_id ...]}}
+
+Generate the {len(events_summary)} ELINT records now:"""
         
         return prompt
     
@@ -254,5 +351,12 @@ Return JSON: {{"elint_records": [... {len(events_summary)} records with correlat
             if not (75.5 <= long_val <= 76.7):
                 logger.warning(f"Longitude {long_val} outside Kargil sector, adjusting")
                 record["long"] = 76.1 + (long_val % 0.6)
+        
+        # Validate description length
+        desc = record.get("description", "")
+        if len(desc) < 150:
+            logger.warning(f"ELINT description too short: {len(desc)} chars")
+        elif len(desc) > 300:
+            logger.info(f"ELINT description length: {len(desc)} chars (acceptable)")
         
         return record

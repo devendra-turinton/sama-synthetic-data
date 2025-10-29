@@ -15,35 +15,48 @@ logger = logging.getLogger(__name__)
 class EnemyActivityGenerator:
     """Generate Enemy Activity by fusing ELINT, IMINT, and TACINT sources"""
     
-    SYSTEM_PROMPT = """You are an Intelligence Fusion Analyst correlating multiple sources.
+    SYSTEM_PROMPT = """You are an Intelligence Fusion Analyst correlating multiple intelligence sources.
 
 FUSION RULES:
 1. CONFIDENCE LEVELS:
-   - CONFIRMED: All 3 sources agree
-   - HIGH CONFIDENCE: 2 sources with strong evidence
-   - PROBABLE: 2 sources with some uncertainty
-   - POSSIBLE: Only 1 source
+   - CONFIRMED: All 3 sources agree on key details
+   - HIGH CONFIDENCE: 2 sources with strong corroborating evidence
+   - PROBABLE: 2 sources with some uncertainty or discrepancies
+   - POSSIBLE: Only 1 source or conflicting evidence
 
 2. RESOLVING CONFLICTS:
-   - Strength: Average across sources (IMINT most accurate for counts)
-   - Equipment ID: TACINT/IMINT trump ELINT (visual beats electronic inference)
-   - Timing: Use earliest detection time (usually ELINT)
-   - Location: Use IMINT coordinates (most accurate GPS)
+   - Strength/Count: Average across sources, IMINT most accurate for vehicle counts
+   - Equipment ID: TACINT/IMINT visual identification trumps ELINT electronic inference
+   - Timing: Use earliest detection time (usually ELINT 10-15 min before others)
+   - Location: Use IMINT GPS coordinates (most accurate ±50m) over TACINT (±500m) or ELINT (±500m+)
+   - Activity assessment: Synthesize all perspectives (electronic prep, visual confirmation, ground observation)
 
-3. DESCRIPTION MUST:
-   - Start with confidence level
-   - Cite ALL sources with specific times
-   - Highlight agreements AND discrepancies
-   - Provide intelligence assessment
-   - Use format: "CONFIRMED activity. Corroborated by ELINT (time), IMINT (time), TACINT (time). All sources agree on..."
+3. DESCRIPTION STRUCTURE (4-6 sentences, 150-200 words):
+   Sentence 1: Confidence level and activity summary
+   Sentence 2-3: Source citations with detection times and key observations
+   Sentence 4: Agreement/discrepancy analysis across sources
+   Sentence 5: Synthesized tactical picture
+   Sentence 6: Intelligence assessment and significance
 
-4. ALWAYS provide realistic values for all fields (no zeros)
+4. SOURCE CITATION FORMAT:
+   - "Activity detected by ELINT at [time] ([specific observation]), corroborated by IMINT satellite pass at [time] ([specific observation]), and verified by TACINT ground observation at [time] ([specific observation])."
+   - Always cite ALL available sources with their specific detection times
+   - Highlight where sources AGREE: "All three sources independently confirm [detail]"
+   - Note DISCREPANCIES: "ELINT suggests [X], while IMINT indicates [Y]"
 
-EXAMPLE:
-"CONFIRMED Pakistani armored company movement toward Point 5140. Activity detected by ELINT at 07:50 (encrypted TRC-20H tactical communications indicating battalion-level coordination), corroborated by IMINT satellite pass at 08:35 (imagery confirms 10-12 Al-Khalid main battle tanks in tactical column formation), and verified by TACINT ground observation at 08:55 from BSF OP Delta-7 (visual identification of 11-13 tanks at 2.8km range). All three sources independently confirm equipment type as Al-Khalid MBT with consistent location coordinates. Assessment: Deliberate tactical deployment, high probability of staging for assault operations."
+5. TACTICAL SYNTHESIS:
+   - Combine electronic preparation (ELINT), overhead view (IMINT), and ground perspective (TACINT)
+   - Resolve count discrepancies: "IMINT imagery counts 10-12 vehicles, TACINT ground observation reports 11-13, assess as company-strength armored element of approximately 11-12 tanks"
+   - Equipment identification: "TACINT visual identification confirms Al-Khalid MBT, corroborated by IMINT overhead signature"
+   - Intent assessment: Use ELINT communications patterns + IMINT positioning + TACINT movement to infer tactical purpose
+
+6. ALWAYS provide realistic values for all fields (no zeros, no nulls)
+
+EXAMPLE FULL FUSION:
+"CONFIRMED Pakistani armored company tactical deployment toward Point 5140. Activity detected by ELINT at 07:50 hours (encrypted TRC-20H tactical communications on frequency 47.250 MHz indicating battalion-level coordination, signal strength suggesting 12.5km range), corroborated by IMINT CARTOSAT-3 satellite pass at 08:35 hours (overhead imagery confirms 10-12 Al-Khalid main battle tanks in tactical column formation with 50-meter spacing), and verified by TACINT ground observation from BSF OP Delta-7 at 08:55 hours (visual identification of 11-13 tanks at 2.8km range using spotting scope, diesel engine sounds audible). All three sources independently confirm equipment type as Al-Khalid MBT with consistent location coordinates at Tololing Summit area (grid 384251 3817136). Minor count discrepancy (IMINT: 10-12, TACINT: 11-13) assessed as same unit with assess strength of company-sized element, approximately 11-12 vehicles. Tactical disposition indicates deliberate staging for assault operations: ELINT communications patterns show increased pre-movement coordination 10-15 minutes before physical displacement, IMINT overhead positioning confirms tactical formation oriented toward Indian positions, TACINT reports coordinated movement with professional spacing and mine plow attachment on lead vehicle. Assessment: High probability of imminent assault operations against Indian forward positions, threat level immediate, recommend artillery counter-battery preparation and forward unit alert status."
 
 FORMAT: JSON with "enemy_activity_records" array.
-IMPORTANT: Generate one fused record per correlation group."""
+IMPORTANT: Generate one fused record per correlation group, citing ALL available sources."""
     
     def __init__(self, correlation_manager: CorrelationManager):
         self.client = AnthropicClient(
@@ -88,7 +101,7 @@ IMPORTANT: Generate one fused record per correlation group."""
             
             logger.info(f"Processing fusion batch: {len(batch_groups)} correlation groups")
             
-            prompt = self._create_fusion_prompt(batch_groups)
+            prompt = self._create_enhanced_fusion_prompt(batch_groups)
             
             try:
                 response = self.client.generate_structured_data(
@@ -103,6 +116,11 @@ IMPORTANT: Generate one fused record per correlation group."""
                     if not record.get("correlation_id"):
                         logger.error("Fused record missing correlation_id!")
                         continue
+                    
+                    # Validate description length
+                    desc = record.get("description", "")
+                    if len(desc) < 150:
+                        logger.warning(f"Fusion description too short: {len(desc)} chars")
                     
                     # Add metadata
                     record["id"] = record_id
@@ -165,24 +183,27 @@ IMPORTANT: Generate one fused record per correlation group."""
         # Log fusion statistics
         full_coverage = 0
         partial_coverage = 0
+        single_source = 0
         
         for cid, sources in groups.items():
             source_count = sum(1 for s in [sources["elint"], sources["imint"], sources["tacint"]] if s)
             if source_count == 3:
                 full_coverage += 1
-            elif source_count >= 2:
+            elif source_count == 2:
                 partial_coverage += 1
+            else:
+                single_source += 1
         
         logger.info(f"  Full coverage (3 sources): {full_coverage}")
         logger.info(f"  Partial coverage (2 sources): {partial_coverage}")
-        logger.info(f"  Single source: {len(groups) - full_coverage - partial_coverage}")
+        logger.info(f"  Single source: {single_source}")
         
         return groups
     
-    def _create_fusion_prompt(self, correlation_groups: Dict[str, Dict]) -> str:
-        """Create fusion prompt with source summaries"""
+    def _create_enhanced_fusion_prompt(self, correlation_groups: Dict[str, Dict]) -> str:
+        """Create enhanced fusion prompt with detailed source information"""
         
-        # Summarize each correlation group compactly
+        # Create detailed summaries for each correlation group
         group_summaries = []
         
         for corr_id, sources in correlation_groups.items():
@@ -192,78 +213,146 @@ IMPORTANT: Generate one fused record per correlation group."""
                 "sources_present": []
             }
             
-            # ELINT summary
+            # ELINT summary (more detail)
             if sources["elint"]:
                 e = sources["elint"][0]
                 summary["sources_present"].append("ELINT")
                 summary["elint"] = {
-                    "time": e.get("from_time", ""),
-                    "emitter": e.get("emitter_type", ""),
-                    "description_excerpt": e.get("description", "")[:150]
+                    "detection_time": e.get("from_time", ""),
+                    "emitter_type": e.get("emitter_type", ""),
+                    "emitter_name": e.get("emitter_name", ""),
+                    "frequency": e.get("frequency", ""),
+                    "location": e.get("location", ""),
+                    "range_km": e.get("range", ""),
+                    "description_excerpt": e.get("description", "")[:200]
                 }
             
-            # IMINT summary
+            # IMINT summary (more detail)
             if sources["imint"]:
                 i = sources["imint"][0]
                 summary["sources_present"].append("IMINT")
                 summary["imint"] = {
-                    "time": i.get("time", ""),
+                    "observation_time": i.get("time", ""),
+                    "satellite": i.get("source_agency", ""),
+                    "target_type": i.get("tgt_cl", ""),
+                    "activity": i.get("activity_cl", ""),
                     "strength": i.get("str", ""),
-                    "target": i.get("tgt_cl", ""),
-                    "description_excerpt": i.get("description", "")[:150]
+                    "grading": i.get("grading", ""),
+                    "coordinates": {"lat": i.get("lat"), "long": i.get("long")},
+                    "description_excerpt": i.get("description", "")[:200]
                 }
             
-            # TACINT summary
+            # TACINT summary (more detail)
             if sources["tacint"]:
                 t = sources["tacint"][0]
                 summary["sources_present"].append("TACINT")
                 summary["tacint"] = {
-                    "time": t.get("time", ""),
+                    "reporting_time": t.get("time", ""),
+                    "source_post": t.get("source_agency", ""),
+                    "target_type": t.get("tgt_cl", ""),
+                    "activity": t.get("activity_cl", ""),
                     "strength": t.get("str", ""),
                     "grading": t.get("grading", ""),
-                    "source": t.get("source_agency", ""),
-                    "description_excerpt": t.get("description", "")[:150]
+                    "observation_method": t.get("input", ""),
+                    "description_excerpt": t.get("description", "")[:200]
                 }
             
             group_summaries.append(summary)
         
         prompt = f"""Fuse intelligence from multiple sources for {len(group_summaries)} correlation groups:
 
+CORRELATION GROUPS WITH SOURCE DETAILS:
 {json.dumps(group_summaries, indent=1)}
 
-For EACH correlation group, generate ONE Enemy Activity record that synthesizes all sources.
+For EACH correlation group, generate ONE Enemy Activity record that comprehensively synthesizes ALL available sources.
 
-Each record must include:
-- correlation_id: (from correlation group)
+Each fused record must include:
+
+REQUIRED FIELDS:
+- correlation_id: (from correlation group above)
 - sensor_type: "MULTI-SOURCE-FUSION"
 - sensor_id: "FUSION-CELL-14-CORPS"
-- tgt_type, tgt_sub_type, tgt_cl: (synthesized from sources)
-- activity_type, activity_sub_type, activity_cl: (synthesized from sources)
+- tgt_type: (synthesized from sources, e.g., "VEHICLE")
+- tgt_sub_type: (synthesized, e.g., "ARMORED")
+- tgt_cl: (synthesized, e.g., "MAIN_BATTLE_TANK")
+- activity_type: (synthesized, e.g., "MOVEMENT")
+- activity_sub_type: (synthesized, e.g., "VEHICULAR")
+- activity_cl: (synthesized, e.g., "TACTICAL_DEPLOYMENT")
 - bearing: (0-360 degrees, e.g., "275")
-- range_km: (detection range, e.g., "8.5")
-- strength: (synthesized from all sources, e.g., "Company-strength (12 Al-Khalid MBTs)")
-- long: (use IMINT coordinates if available, 76.0-76.6)
-- lat: (use IMINT coordinates if available, 34.4-34.7)
-- ht: (3000-5000)
-- e: (383000-385000)
-- n: (3815000-3820000)
+- range_km: (average from sources, e.g., "8.5")
+- strength: (synthesized assessment, e.g., "Company-strength armored element, approximately 11-12 Al-Khalid MBTs")
+- long: (use IMINT coordinates if available, else TACINT, else ELINT; range 76.0-76.6)
+- lat: (use IMINT coordinates if available, else TACINT, else ELINT; range 34.4-34.7)
+- ht: (use IMINT or TACINT height, 3000-5000)
+- e: (easting in meters, 383000-385000)
+- n: (northing in meters, 3815000-3820000)
 - zone: "43S"
-- input_method: "Multi-source intelligence fusion"
-- description: (CRITICAL - MUST cite ALL sources with times, highlight agreements, assess significance, 4-6 sentences)
-- upload_time: "YYYY-MM-DD HH:MM" format (e.g., "1999-06-15 09:30")
-- confidence_level: "CONFIRMED"/"HIGH CONFIDENCE"/"PROBABLE"/"POSSIBLE"
-- sources_corroborated: (comma-separated list, e.g., "ELINT, IMINT, TACINT")
+- input_method: "Multi-source intelligence fusion (ELINT/IMINT/TACINT)"
+- description: (150-200 words, MUST cite ALL sources, see structure below)
+- upload_time: "YYYY-MM-DD HH:MM" format (latest source time + 30-60 min for analysis)
+- confidence_level: "CONFIRMED" | "HIGH CONFIDENCE" | "PROBABLE" | "POSSIBLE"
+- sources_corroborated: (comma-separated, e.g., "ELINT, IMINT, TACINT")
 
-DESCRIPTION FORMAT EXAMPLE:
-"CONFIRMED Pakistani armored company movement. Corroborated by ELINT at 07:50 (encrypted tactical communications), IMINT at 08:35 (satellite imagery confirming 10-12 Al-Khalid tanks), and TACINT at 08:55 (BSF visual confirmation of 11-13 tanks). All sources agree on equipment type and tactical formation. Movement pattern indicates deliberate operational deployment. ASSESSMENT: High probability of staging for assault operations against Indian positions."
+DESCRIPTION STRUCTURE (150-200 words, 4-6 sentences):
 
-CRITICAL: 
-1. Description MUST cite ALL available sources with their detection times
-2. Highlight where sources AGREE (equipment, activity type)
-3. Note any DISCREPANCIES (different counts, timing variations)
-4. Provide tactical ASSESSMENT of significance
-5. upload_time format: "YYYY-MM-DD HH:MM"
+Sentence 1: Confidence level + Activity summary
+  Example: "CONFIRMED Pakistani armored company tactical deployment toward Point 5140 in Tololing Summit area."
 
-Return JSON: {{"enemy_activity_records": [... {len(group_summaries)} records ...]}}"""
+Sentence 2-3: Source citations with specific times and key observations
+  Example: "Activity detected by ELINT at 07:50 hours (encrypted TRC-20H tactical communications on frequency 47.250 MHz indicating battalion-level coordination, signal strength -78 dBm suggests 12.5km transmitter range), corroborated by IMINT CARTOSAT-3 satellite pass at 08:35 hours (0.25m resolution overhead imagery confirms 10-12 Al-Khalid main battle tanks in tactical column formation with 50-meter spacing, oriented northeast), and verified by TACINT ground observation from BSF Observation Post Delta-7 at 08:55 hours (visual identification of 11-13 tanks at 2.8km range using Carl Zeiss 20x60 spotting scope, diesel engine sounds audible, mine plow attachment visible on lead vehicle)."
+
+Sentence 4: Agreement/Discrepancy analysis
+  Example: "All three sources independently confirm equipment type as Al-Khalid MBT with consistent location coordinates (IMINT GPS: 76.1158°E 34.5447°N, TACINT visual: same grid reference 384251 3817136). Minor count discrepancy between IMINT (10-12 vehicles) and TACINT (11-13 vehicles) assessed as observation variance of same unit, consolidated strength assessment of company-sized armored element with approximately 11-12 main battle tanks."
+
+Sentence 5: Synthesized tactical picture
+  Example: "Tactical disposition indicates deliberate staging for assault operations: ELINT communications analysis shows increased pre-movement coordination patterns 10-15 minutes before physical displacement characteristic of Pakistani Army tactical procedures, IMINT overhead positioning confirms vehicles in attack formation oriented toward Indian forward positions, TACINT ground observation reports coordinated professional movement with standard tactical spacing and visible command/control between vehicle commanders using hand signals."
+
+Sentence 6: Intelligence assessment and significance
+  Example: "Assessment: High probability of imminent assault operations against Indian forward defensive positions at Tololing. Threat level assessed as immediate. Unit demonstrates professional military capabilities with secure communications (ELINT), proper tactical formations (IMINT), and coordinated maneuver discipline (TACINT). Recommend: Artillery counter-battery preparation, forward unit alert status upgrade, and reinforcement of defensive positions in threatened sector."
+
+CRITICAL FUSION REQUIREMENTS:
+1. MUST cite ALL available sources with their specific detection times
+2. Resolve count discrepancies by averaging and explaining variance
+3. Equipment ID: Use visual confirmation (TACINT/IMINT) over electronic inference (ELINT)
+4. Location: Prioritize IMINT GPS coordinates (±50m) over TACINT (±500m) or ELINT (±500m+)
+5. Timing: Note earliest detection (usually ELINT) and progression through sources
+6. Highlight where sources AGREE on key facts (equipment, location, activity type)
+7. Explain any DISCREPANCIES and provide reconciled assessment
+8. Synthesize different perspectives: electronic prep (ELINT) + overhead view (IMINT) + ground observation (TACINT)
+9. Provide tactical assessment combining all source insights
+10. Confidence level based on source agreement: 3 sources agreeing = CONFIRMED, 2 sources = HIGH CONFIDENCE/PROBABLE, 1 source = POSSIBLE
+11. upload_time format: "YYYY-MM-DD HH:MM"
+12. Description must be 150-200 words
+
+EXAMPLE RECORD (use as template):
+{{
+  "correlation_id": "CORR_0042",
+  "sensor_type": "MULTI-SOURCE-FUSION",
+  "sensor_id": "FUSION-CELL-14-CORPS",
+  "tgt_type": "VEHICLE",
+  "tgt_sub_type": "ARMORED",
+  "tgt_cl": "MAIN_BATTLE_TANK",
+  "activity_type": "MOVEMENT",
+  "activity_sub_type": "VEHICULAR",
+  "activity_cl": "TACTICAL_DEPLOYMENT",
+  "bearing": "275",
+  "range_km": "8.5",
+  "strength": "Company-strength armored element, approximately 11-12 Al-Khalid MBTs with supporting logistics",
+  "long": 76.1158,
+  "lat": 34.5447,
+  "ht": 4590,
+  "e": 384251,
+  "n": 3817136,
+  "zone": "43S",
+  "input_method": "Multi-source intelligence fusion (ELINT/IMINT/TACINT)",
+  "description": "CONFIRMED Pakistani armored company tactical deployment toward Point 5140 in Tololing Summit area. Activity detected by ELINT at 07:50 hours (encrypted TRC-20H tactical communications on frequency 47.250 MHz indicating battalion-level coordination, signal strength -78 dBm suggests 12.5km transmitter range), corroborated by IMINT CARTOSAT-3 satellite pass at 08:35 hours (0.25m resolution overhead imagery confirms 10-12 Al-Khalid main battle tanks in tactical column formation with 50-meter spacing, oriented northeast), and verified by TACINT ground observation from BSF Observation Post Delta-7 at 08:55 hours (visual identification of 11-13 tanks at 2.8km range using Carl Zeiss 20x60 spotting scope, diesel engine sounds audible, mine plow attachment visible on lead vehicle). All three sources independently confirm equipment type as Al-Khalid MBT with consistent location coordinates (IMINT GPS: 76.1158°E 34.5447°N, TACINT visual: same grid 384251 3817136). Minor count discrepancy between IMINT (10-12 vehicles) and TACINT (11-13 vehicles) assessed as observation variance of same unit, consolidated strength assessment of company-sized element with approximately 11-12 main battle tanks. Tactical disposition indicates deliberate staging for assault operations: ELINT communications patterns show increased pre-movement coordination 10-15 minutes before physical displacement, IMINT overhead positioning confirms attack formation oriented toward Indian positions, TACINT reports coordinated movement with professional spacing. Assessment: High probability of imminent assault operations, threat level immediate, recommend artillery counter-battery preparation and forward unit alert.",
+  "upload_time": "1999-06-15 09:30",
+  "confidence_level": "CONFIRMED",
+  "sources_corroborated": "ELINT, IMINT, TACINT"
+}}
+
+Return JSON: {{"enemy_activity_records": [... {len(group_summaries)} fused records ...]}}
+
+Generate the {len(group_summaries)} comprehensive fusion records now:"""
         
         return prompt
