@@ -1,358 +1,426 @@
 import os
 import json
 import logging
+import asyncio
+import random
 from typing import Dict, List, Any
+from datetime import datetime, timedelta
 
-from utils.anthropic_client import AnthropicClient
+from utils.async_anthropic_client import AsyncAnthropicClient
 from utils.correlation_manager import CorrelationManager
 from config import (OUTPUT_DIR, OBSERVING_UNITS, FORMATION_MAPPING,
-                   ANTHROPIC_API_KEY, MODEL_CONFIG)
+                   ANTHROPIC_API_KEY, MODEL_CONFIG, MILITARY_INTELLIGENCE_LANGUAGE)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
 class EnemyActivityGenerator:
-    """Generate Enemy Activity by fusing ELINT, IMINT, and TACINT sources"""
+    """
+    Generate INDEPENDENT Enemy Activity observations from various sensor types.
     
-    SYSTEM_PROMPT = """You are an Intelligence Fusion Analyst correlating multiple intelligence sources.
-
-FUSION RULES:
-1. CONFIDENCE LEVELS:
-   - CONFIRMED: All 3 sources agree on key details
-   - HIGH CONFIDENCE: 2 sources with strong corroborating evidence
-   - PROBABLE: 2 sources with some uncertainty or discrepancies
-   - POSSIBLE: Only 1 source or conflicting evidence
-
-2. RESOLVING CONFLICTS:
-   - Strength/Count: Average across sources, IMINT most accurate for vehicle counts
-   - Equipment ID: TACINT/IMINT visual identification trumps ELINT electronic inference
-   - Timing: Use earliest detection time (usually ELINT 10-15 min before others)
-   - Location: Use IMINT GPS coordinates (most accurate ±50m) over TACINT (±500m) or ELINT (±500m+)
-   - Activity assessment: Synthesize all perspectives (electronic prep, visual confirmation, ground observation)
-
-3. DESCRIPTION STRUCTURE (4-6 sentences, 150-200 words):
-   Sentence 1: Confidence level and activity summary
-   Sentence 2-3: Source citations with detection times and key observations
-   Sentence 4: Agreement/discrepancy analysis across sources
-   Sentence 5: Synthesized tactical picture
-   Sentence 6: Intelligence assessment and significance
-
-4. SOURCE CITATION FORMAT:
-   - "Activity detected by ELINT at [time] ([specific observation]), corroborated by IMINT satellite pass at [time] ([specific observation]), and verified by TACINT ground observation at [time] ([specific observation])."
-   - Always cite ALL available sources with their specific detection times
-   - Highlight where sources AGREE: "All three sources independently confirm [detail]"
-   - Note DISCREPANCIES: "ELINT suggests [X], while IMINT indicates [Y]"
-
-5. TACTICAL SYNTHESIS:
-   - Combine electronic preparation (ELINT), overhead view (IMINT), and ground perspective (TACINT)
-   - Resolve count discrepancies: "IMINT imagery counts 10-12 vehicles, TACINT ground observation reports 11-13, assess as company-strength armored element of approximately 11-12 tanks"
-   - Equipment identification: "TACINT visual identification confirms Al-Khalid MBT, corroborated by IMINT overhead signature"
-   - Intent assessment: Use ELINT communications patterns + IMINT positioning + TACINT movement to infer tactical purpose
-
-6. ALWAYS provide realistic values for all fields (no zeros, no nulls)
-
-EXAMPLE FULL FUSION:
-"CONFIRMED Pakistani armored company tactical deployment toward Point 5140. Activity detected by ELINT at 07:50 hours (encrypted TRC-20H tactical communications on frequency 47.250 MHz indicating battalion-level coordination, signal strength suggesting 12.5km range), corroborated by IMINT CARTOSAT-3 satellite pass at 08:35 hours (overhead imagery confirms 10-12 Al-Khalid main battle tanks in tactical column formation with 50-meter spacing), and verified by TACINT ground observation from BSF OP Delta-7 at 08:55 hours (visual identification of 11-13 tanks at 2.8km range using spotting scope, diesel engine sounds audible). All three sources independently confirm equipment type as Al-Khalid MBT with consistent location coordinates at Tololing Summit area (grid 384251 3817136). Minor count discrepancy (IMINT: 10-12, TACINT: 11-13) assessed as same unit with assess strength of company-sized element, approximately 11-12 vehicles. Tactical disposition indicates deliberate staging for assault operations: ELINT communications patterns show increased pre-movement coordination 10-15 minutes before physical displacement, IMINT overhead positioning confirms tactical formation oriented toward Indian positions, TACINT reports coordinated movement with professional spacing and mine plow attachment on lead vehicle. Assessment: High probability of imminent assault operations against Indian forward positions, threat level immediate, recommend artillery counter-battery preparation and forward unit alert status."
-
-FORMAT: JSON with "enemy_activity_records" array.
-IMPORTANT: Generate one fused record per correlation group, citing ALL available sources."""
+    This is NOT fusion/correlation - each record represents an independent sensor observation
+    of enemy activity. Multiple sensors can observe the same event (linked by correlation_id)
+    but each generates its own independent perspective.
     
-    def __init__(self, correlation_manager: CorrelationManager):
-        self.client = AnthropicClient(
-            api_key=ANTHROPIC_API_KEY,
-            model=MODEL_CONFIG["model"],
-            max_tokens=MODEL_CONFIG["max_tokens"],
-            temperature=MODEL_CONFIG["temperature"]
-        )
-        self.correlation_manager = correlation_manager
-        self.unit_fmn_codes = OBSERVING_UNITS["FUSION"]
+    Sensor Types:
+    - GROUND_SURVEILLANCE_RADAR: Ground-based radar detecting movement
+    - SEISMIC_SENSOR: Seismic detection of vehicle/troop movement
+    - THERMAL_SENSOR: Thermal imaging arrays
+    """
     
-    def generate_enemy_activity_data(self,
-                                     scenario: Dict[str, Any],
-                                     elint_data: List[Dict[str, Any]],
-                                     imint_data: List[Dict[str, Any]],
-                                     tacint_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Generate fused Enemy Activity records"""
-        
-        logger.info("="*80)
-        logger.info("GENERATING ENEMY ACTIVITY (INTELLIGENCE FUSION)")
-        logger.info("="*80)
-        
-        # Group all intelligence by correlation_id
-        correlation_groups = self._group_by_correlation(elint_data, imint_data, tacint_data)
-        
-        logger.info(f"Found {len(correlation_groups)} correlation groups for fusion")
-        
-        if not correlation_groups:
-            logger.warning("No correlation groups found! Check that correlation_ids are present in source data.")
-            return []
-        
-        all_enemy_activity_records = []
-        record_id = 1
-        
-        # Process in batches to manage token limits
-        batch_size = 10
-        correlation_ids = list(correlation_groups.keys())
-        
-        for batch_start in range(0, len(correlation_ids), batch_size):
-            batch_ids = correlation_ids[batch_start:batch_start + batch_size]
-            batch_groups = {cid: correlation_groups[cid] for cid in batch_ids}
-            
-            logger.info(f"Processing fusion batch: {len(batch_groups)} correlation groups")
-            
-            prompt = self._create_enhanced_fusion_prompt(batch_groups)
-            
-            try:
-                response = self.client.generate_structured_data(
-                    prompt,
-                    system_prompt=self.SYSTEM_PROMPT
-                )
-                records = response.get("enemy_activity_records", [])
-                
-                # Validate and enhance records
-                for record in records:
-                    # Validate correlation_id exists
-                    if not record.get("correlation_id"):
-                        logger.error("Fused record missing correlation_id!")
-                        continue
-                    
-                    # Validate description length
-                    desc = record.get("description", "")
-                    if len(desc) < 150:
-                        logger.warning(f"Fusion description too short: {len(desc)} chars")
-                    
-                    # Add metadata
-                    record["id"] = record_id
-                    record_id += 1
-                    
-                    # Add fusion cell unit info
-                    fmn_code = self.unit_fmn_codes[0]
-                    unit_info = FORMATION_MAPPING[fmn_code].copy()
-                    unit_info["fmn_code"] = fmn_code
-                    record.update(unit_info)
-                    
-                    all_enemy_activity_records.append(record)
-                
-                logger.info(f"  ✓ Fused {len(records)} Enemy Activity records")
-                
-            except Exception as e:
-                logger.error(f"Error in fusion batch: {e}", exc_info=True)
-                continue
-        
-        # Save output
-        output_path = os.path.join(OUTPUT_DIR, f"enemy_activity_data_{scenario['scenario_name']}.json")
-        with open(output_path, 'w') as f:
-            json.dump(all_enemy_activity_records, f, indent=2)
-        
-        logger.info(f"✓ Enemy Activity fusion complete: {len(all_enemy_activity_records)} records")
-        logger.info(f"✓ Saved to: {output_path}")
-        
-        return all_enemy_activity_records
-    
-    def _group_by_correlation(self, elint: List[Dict], imint: List[Dict], 
-                             tacint: List[Dict]) -> Dict[str, Dict]:
-        """Group intelligence records by correlation_id"""
-        
-        groups = {}
-        
-        # Group ELINT
-        for record in elint:
-            cid = record.get("correlation_id")
-            if cid:
-                if cid not in groups:
-                    groups[cid] = {"elint": [], "imint": [], "tacint": []}
-                groups[cid]["elint"].append(record)
-        
-        # Group IMINT
-        for record in imint:
-            cid = record.get("correlation_id")
-            if cid:
-                if cid not in groups:
-                    groups[cid] = {"elint": [], "imint": [], "tacint": []}
-                groups[cid]["imint"].append(record)
-        
-        # Group TACINT
-        for record in tacint:
-            cid = record.get("correlation_id")
-            if cid:
-                if cid not in groups:
-                    groups[cid] = {"elint": [], "imint": [], "tacint": []}
-                groups[cid]["tacint"].append(record)
-        
-        # Log fusion statistics
-        full_coverage = 0
-        partial_coverage = 0
-        single_source = 0
-        
-        for cid, sources in groups.items():
-            source_count = sum(1 for s in [sources["elint"], sources["imint"], sources["tacint"]] if s)
-            if source_count == 3:
-                full_coverage += 1
-            elif source_count == 2:
-                partial_coverage += 1
-            else:
-                single_source += 1
-        
-        logger.info(f"  Full coverage (3 sources): {full_coverage}")
-        logger.info(f"  Partial coverage (2 sources): {partial_coverage}")
-        logger.info(f"  Single source: {single_source}")
-        
-        return groups
-    
-    def _create_enhanced_fusion_prompt(self, correlation_groups: Dict[str, Dict]) -> str:
-        """Create enhanced fusion prompt with detailed source information"""
-        
-        # Create detailed summaries for each correlation group
-        group_summaries = []
-        
-        for corr_id, sources in correlation_groups.items():
-            summary = {
-                "correlation_id": corr_id,
-                "source_count": sum(1 for s in [sources["elint"], sources["imint"], sources["tacint"]] if s),
-                "sources_present": []
-            }
-            
-            # ELINT summary (more detail)
-            if sources["elint"]:
-                e = sources["elint"][0]
-                summary["sources_present"].append("ELINT")
-                summary["elint"] = {
-                    "detection_time": e.get("from_time", ""),
-                    "emitter_type": e.get("emitter_type", ""),
-                    "emitter_name": e.get("emitter_name", ""),
-                    "frequency": e.get("frequency", ""),
-                    "location": e.get("location", ""),
-                    "range_km": e.get("range", ""),
-                    "description_excerpt": e.get("description", "")[:200]
-                }
-            
-            # IMINT summary (more detail)
-            if sources["imint"]:
-                i = sources["imint"][0]
-                summary["sources_present"].append("IMINT")
-                summary["imint"] = {
-                    "observation_time": i.get("time", ""),
-                    "satellite": i.get("source_agency", ""),
-                    "target_type": i.get("tgt_cl", ""),
-                    "activity": i.get("activity_cl", ""),
-                    "strength": i.get("str", ""),
-                    "grading": i.get("grading", ""),
-                    "coordinates": {"lat": i.get("lat"), "long": i.get("long")},
-                    "description_excerpt": i.get("description", "")[:200]
-                }
-            
-            # TACINT summary (more detail)
-            if sources["tacint"]:
-                t = sources["tacint"][0]
-                summary["sources_present"].append("TACINT")
-                summary["tacint"] = {
-                    "reporting_time": t.get("time", ""),
-                    "source_post": t.get("source_agency", ""),
-                    "target_type": t.get("tgt_cl", ""),
-                    "activity": t.get("activity_cl", ""),
-                    "strength": t.get("str", ""),
-                    "grading": t.get("grading", ""),
-                    "observation_method": t.get("input", ""),
-                    "description_excerpt": t.get("description", "")[:200]
-                }
-            
-            group_summaries.append(summary)
-        
-        prompt = f"""Fuse intelligence from multiple sources for {len(group_summaries)} correlation groups:
+    SYSTEM_PROMPT = """You are generating independent sensor observations of enemy activity.
 
-CORRELATION GROUPS WITH SOURCE DETAILS:
-{json.dumps(group_summaries, indent=1)}
+CRITICAL RULES:
+1. Each record represents ONE SENSOR'S independent observation
+2. DO NOT reference or cite other intelligence sources (ELINT, IMINT, TACINT)
+3. Generate from THIS SENSOR'S perspective ONLY
+4. Sensor types: GROUND_SURVEILLANCE_RADAR, SEISMIC_SENSOR,THERMAL_SENSOR
+5. Each sensor has its own capabilities and limitations
+6. ALWAYS provide realistic coordinates (lat 34.4-34.8, long 75.7-76.5)
+7. ALWAYS include correlation_id field matching the event
+8. Descriptions should reflect sensor-specific detection methods
 
-For EACH correlation group, generate ONE Enemy Activity record that comprehensively synthesizes ALL available sources.
+SENSOR CAPABILITIES:
 
-Each fused record must include:
+GROUND_SURVEILLANCE_RADAR:
+- Detects movement via radar reflection
+- Range: 10-20km
+- Can detect: vehicles, groups of personnel, equipment
+- Cannot identify specific equipment types (just "tracked vehicles", "wheeled vehicles")
+- Provides bearing, range, speed, direction
+- Example: "Ground surveillance radar detected multiple large tracked vehicles moving at bearing 275°..."
 
-REQUIRED FIELDS:
-- correlation_id: (from correlation group above)
-- sensor_type: "MULTI-SOURCE-FUSION"
-- sensor_id: "FUSION-CELL-14-CORPS"
-- tgt_type: (synthesized from sources, e.g., "VEHICLE")
-- tgt_sub_type: (synthesized, e.g., "ARMORED")
-- tgt_cl: (synthesized, e.g., "MAIN_BATTLE_TANK")
-- activity_type: (synthesized, e.g., "MOVEMENT")
-- activity_sub_type: (synthesized, e.g., "VEHICULAR")
-- activity_cl: (synthesized, e.g., "TACTICAL_DEPLOYMENT")
-- bearing: (0-360 degrees, e.g., "275")
-- range_km: (average from sources, e.g., "8.5")
-- strength: (synthesized assessment, e.g., "Company-strength armored element, approximately 11-12 Al-Khalid MBTs")
-- long: (use IMINT coordinates if available, else TACINT, else ELINT; range 76.0-76.6)
-- lat: (use IMINT coordinates if available, else TACINT, else ELINT; range 34.4-34.7)
-- ht: (use IMINT or TACINT height, 3000-5000)
-- e: (easting in meters, 383000-385000)
-- n: (northing in meters, 3815000-3820000)
-- zone: "43S"
-- input_method: "Multi-source intelligence fusion (ELINT/IMINT/TACINT)"
-- description: (150-200 words, MUST cite ALL sources, see structure below)
-- upload_time: "YYYY-MM-DD HH:MM" format (latest source time + 30-60 min for analysis)
-- confidence_level: "CONFIRMED" | "HIGH CONFIDENCE" | "PROBABLE" | "POSSIBLE"
-- sources_corroborated: (comma-separated, e.g., "ELINT, IMINT, TACINT")
+SEISMIC_SENSOR:
+- Detects ground vibrations from vehicle/troop movement
+- Range: 5-15km depending on terrain
+- Can detect: vehicle movement, heavy equipment, large troop formations
+- Provides: approximate location, vibration intensity, movement pattern
+- Example: "Seismic sensors detected strong ground vibrations consistent with heavy tracked vehicle movement..."
 
-DESCRIPTION STRUCTURE (150-200 words, 4-6 sentences):
 
-Sentence 1: Confidence level + Activity summary
-  Example: "CONFIRMED Pakistani armored company tactical deployment toward Point 5140 in Tololing Summit area."
+THERMAL_SENSOR:
+- Thermal imaging arrays detecting heat signatures
+- Range: 3-10km
+- Can detect: vehicle heat signatures, personnel groups, equipment
+- Provides: thermal signatures, approximate count, heat intensity
+- Example: "Thermal sensor array detected multiple high-intensity heat signatures consistent with vehicle engines..."
 
-Sentence 2-3: Source citations with specific times and key observations
-  Example: "Activity detected by ELINT at 07:50 hours (encrypted TRC-20H tactical communications on frequency 47.250 MHz indicating battalion-level coordination, signal strength -78 dBm suggests 12.5km transmitter range), corroborated by IMINT CARTOSAT-3 satellite pass at 08:35 hours (0.25m resolution overhead imagery confirms 10-12 Al-Khalid main battle tanks in tactical column formation with 50-meter spacing, oriented northeast), and verified by TACINT ground observation from BSF Observation Post Delta-7 at 08:55 hours (visual identification of 11-13 tanks at 2.8km range using Carl Zeiss 20x60 spotting scope, diesel engine sounds audible, mine plow attachment visible on lead vehicle)."
+DESCRIPTION STRUCTURE (100-150 words):
+1. Sensor identification and detection time
+2. What the sensor detected (from its perspective only)
+3. Technical measurements (bearing, range, intensity, etc.)
+4. Sensor-specific details (radar return, seismic pattern, sound frequency, etc.)
+5. Inferred activity type (based on sensor signature)
+6. Assessment of confidence (based on sensor data quality)
 
-Sentence 4: Agreement/Discrepancy analysis
-  Example: "All three sources independently confirm equipment type as Al-Khalid MBT with consistent location coordinates (IMINT GPS: 76.1158°E 34.5447°N, TACINT visual: same grid reference 384251 3817136). Minor count discrepancy between IMINT (10-12 vehicles) and TACINT (11-13 vehicles) assessed as observation variance of same unit, consolidated strength assessment of company-sized armored element with approximately 11-12 main battle tanks."
-
-Sentence 5: Synthesized tactical picture
-  Example: "Tactical disposition indicates deliberate staging for assault operations: ELINT communications analysis shows increased pre-movement coordination patterns 10-15 minutes before physical displacement characteristic of Pakistani Army tactical procedures, IMINT overhead positioning confirms vehicles in attack formation oriented toward Indian forward positions, TACINT ground observation reports coordinated professional movement with standard tactical spacing and visible command/control between vehicle commanders using hand signals."
-
-Sentence 6: Intelligence assessment and significance
-  Example: "Assessment: High probability of imminent assault operations against Indian forward defensive positions at Tololing. Threat level assessed as immediate. Unit demonstrates professional military capabilities with secure communications (ELINT), proper tactical formations (IMINT), and coordinated maneuver discipline (TACINT). Recommend: Artillery counter-battery preparation, forward unit alert status upgrade, and reinforcement of defensive positions in threatened sector."
-
-CRITICAL FUSION REQUIREMENTS:
-1. MUST cite ALL available sources with their specific detection times
-2. Resolve count discrepancies by averaging and explaining variance
-3. Equipment ID: Use visual confirmation (TACINT/IMINT) over electronic inference (ELINT)
-4. Location: Prioritize IMINT GPS coordinates (±50m) over TACINT (±500m) or ELINT (±500m+)
-5. Timing: Note earliest detection (usually ELINT) and progression through sources
-6. Highlight where sources AGREE on key facts (equipment, location, activity type)
-7. Explain any DISCREPANCIES and provide reconciled assessment
-8. Synthesize different perspectives: electronic prep (ELINT) + overhead view (IMINT) + ground observation (TACINT)
-9. Provide tactical assessment combining all source insights
-10. Confidence level based on source agreement: 3 sources agreeing = CONFIRMED, 2 sources = HIGH CONFIDENCE/PROBABLE, 1 source = POSSIBLE
-11. upload_time format: "YYYY-MM-DD HH:MM"
-12. Description must be 150-200 words
-
-EXAMPLE RECORD (use as template):
-{{
-  "correlation_id": "CORR_0042",
-  "sensor_type": "MULTI-SOURCE-FUSION",
-  "sensor_id": "FUSION-CELL-14-CORPS",
+EXAMPLE RECORD:
+{
+  "sensor_type": "GROUND_SURVEILLANCE_RADAR",
+  "sensor_id": "GSR-14-CORPS-03",
   "tgt_type": "VEHICLE",
-  "tgt_sub_type": "ARMORED",
-  "tgt_cl": "MAIN_BATTLE_TANK",
+  "tgt_sub_type": "TRACKED_VEHICLE",
+  "tgt_cl": "ARMORED_VEHICLE",
   "activity_type": "MOVEMENT",
   "activity_sub_type": "VEHICULAR",
   "activity_cl": "TACTICAL_DEPLOYMENT",
   "bearing": "275",
-  "range_km": "8.5",
-  "strength": "Company-strength armored element, approximately 11-12 Al-Khalid MBTs with supporting logistics",
+  "range_km": "12.5",
+  "str": "Multiple tracked vehicles, estimated 10-15 units",
   "long": 76.1158,
   "lat": 34.5447,
   "ht": 4590,
   "e": 384251,
   "n": 3817136,
   "zone": "43S",
-  "input_method": "Multi-source intelligence fusion (ELINT/IMINT/TACINT)",
-  "description": "CONFIRMED Pakistani armored company tactical deployment toward Point 5140 in Tololing Summit area. Activity detected by ELINT at 07:50 hours (encrypted TRC-20H tactical communications on frequency 47.250 MHz indicating battalion-level coordination, signal strength -78 dBm suggests 12.5km transmitter range), corroborated by IMINT CARTOSAT-3 satellite pass at 08:35 hours (0.25m resolution overhead imagery confirms 10-12 Al-Khalid main battle tanks in tactical column formation with 50-meter spacing, oriented northeast), and verified by TACINT ground observation from BSF Observation Post Delta-7 at 08:55 hours (visual identification of 11-13 tanks at 2.8km range using Carl Zeiss 20x60 spotting scope, diesel engine sounds audible, mine plow attachment visible on lead vehicle). All three sources independently confirm equipment type as Al-Khalid MBT with consistent location coordinates (IMINT GPS: 76.1158°E 34.5447°N, TACINT visual: same grid 384251 3817136). Minor count discrepancy between IMINT (10-12 vehicles) and TACINT (11-13 vehicles) assessed as observation variance of same unit, consolidated strength assessment of company-sized element with approximately 11-12 main battle tanks. Tactical disposition indicates deliberate staging for assault operations: ELINT communications patterns show increased pre-movement coordination 10-15 minutes before physical displacement, IMINT overhead positioning confirms attack formation oriented toward Indian positions, TACINT reports coordinated movement with professional spacing. Assessment: High probability of imminent assault operations, threat level immediate, recommend artillery counter-battery preparation and forward unit alert.",
-  "upload_time": "1999-06-15 09:30",
-  "confidence_level": "CONFIRMED",
-  "sources_corroborated": "ELINT, IMINT, TACINT"
+  "input_method": "Ground surveillance radar detection",
+  "description": "Ground surveillance radar GSR-14-CORPS-03 detected multiple large tracked vehicles at bearing 275 degrees, range 12.5 kilometers from sensor location at 08:20 hours local time. Radar return signatures indicate 10-15 tracked vehicles moving in coordinated formation with spacing consistent with military tactical movement. Target velocity approximately 15-20 kilometers per hour across terrain toward grid reference 384251 3817136 at elevation 4590 meters in Tololing sector. Radar cross-section analysis suggests heavy armored vehicles based on reflection intensity and profile. Movement pattern indicates deliberate tactical displacement rather than administrative movement. Signal strength and Doppler analysis confirm targets are large metallic vehicles in column formation. Weather conditions clear, no atmospheric interference affecting detection. Assessed as probable enemy armored company conducting tactical movement based on number of vehicles, formation discipline, and movement toward known conflict area. Confidence level high based on clear radar returns and consistent tracking over 15-minute observation period.",
+  "upload_time": "1999-06-15 08:30",
+  "correlation_id": "CORR_0042"
+}
+
+FORMAT: Return JSON with "enemy_activity_records" array.
+CRITICAL: Each record is INDEPENDENT - do not reference other intelligence sources!"""
+    
+    def __init__(self, correlation_manager: CorrelationManager):
+        self.async_client = AsyncAnthropicClient(
+            api_key=ANTHROPIC_API_KEY,
+            model=MODEL_CONFIG["model"],
+            max_tokens=MODEL_CONFIG["max_tokens"],
+            temperature=MODEL_CONFIG["temperature"],
+            max_concurrent=5  # Limit concurrent API calls
+        )
+        self.correlation_manager = correlation_manager
+        self.unit_fmn_codes = OBSERVING_UNITS["FUSION"]  # Reusing for sensor units
+        
+        # Sensor types to generate
+        self.sensor_types = [
+            "GROUND_SURVEILLANCE_RADAR",
+            "SEISMIC_SENSOR",
+            "THERMAL_SENSOR"
+        ]
+    
+    def generate_enemy_activity_data(self, scenario: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Generate independent enemy activity sensor observations - ASYNC"""
+        
+        logger.info("="*80)
+        logger.info("GENERATING ENEMY ACTIVITY DATA (Independent Sensor Observations)")
+        logger.info("="*80)
+        
+        # Run async generation
+        loop = asyncio.get_event_loop()
+        all_records = loop.run_until_complete(self._generate_async(scenario))
+        
+        # Save output
+        output_path = os.path.join(OUTPUT_DIR, f"enemy_activity_data_{scenario['scenario_name']}.json")
+        with open(output_path, 'w') as f:
+            json.dump(all_records, f, indent=2)
+        
+        logger.info(f"✓ Enemy Activity generation complete: {len(all_records)} records")
+        logger.info(f"✓ Saved to: {output_path}")
+        
+        return all_records
+    
+    async def _generate_async(self, scenario: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Async generation of all enemy activity records"""
+        
+        timeline = scenario.get("timeline", [])
+        total_days = len(timeline)
+        
+        # Collect all generation tasks
+        tasks = []
+        
+        for day_idx, day in enumerate(timeline, 1):
+            date = day["date"]
+            events = day.get("events", [])
+            
+            logger.info(f"Queuing day {day_idx}/{total_days}: {date} ({len(events)} events)")
+            
+            # Get events with correlation packages
+            correlation_packages = []
+            for event in events:
+                correlation_id = event.get("correlation_id")
+                if correlation_id:
+                    corr_pkg = self.correlation_manager.get_correlation_package(correlation_id)
+                    if corr_pkg:
+                        # Check if ANY sensor type should observe this
+                        # For now, we'll generate for events that have observable activity
+                        if event.get("event_type") in ["movement", "firing", "construction", 
+                                                       "reconnaissance", "engagement", "deployment"]:
+                            correlation_packages.append(corr_pkg)
+            
+            if not correlation_packages:
+                logger.warning(f"No observable events for {date}, skipping")
+                continue
+            
+            # Create task for this day
+            task = self._generate_day_async(date, correlation_packages)
+            tasks.append(task)
+        
+        # Execute all tasks concurrently with progress tracking
+        logger.info(f"Executing {len(tasks)} day generation tasks concurrently...")
+        
+        all_records = []
+        for completed_task in asyncio.as_completed(tasks):
+            day_records = await completed_task
+            all_records.extend(day_records)
+            logger.info(f"  ✓ Completed 1 day: {len(day_records)} records generated")
+        
+        return all_records
+    
+    async def _generate_day_async(self, date: str, correlation_packages: List[Dict]) -> List[Dict[str, Any]]:
+        """Generate enemy activity records for one day asynchronously"""
+        
+        # For each event, generate 1-2 sensor observations
+        tasks = []
+        
+        for pkg in correlation_packages:
+            # Randomly select 1-2 sensor types for this event
+            num_sensors = random.randint(1, 2)
+            selected_sensors = random.sample(self.sensor_types, num_sensors)
+            
+            for sensor_type in selected_sensors:
+                task = self._generate_single_observation_async(date, pkg, sensor_type)
+                tasks.append(task)
+        
+        # Execute all observations for this day
+        day_records = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        # Filter out exceptions and None values
+        valid_records = []
+        for record in day_records:
+            if isinstance(record, Exception):
+                logger.error(f"Error generating record: {record}")
+            elif record is not None:
+                valid_records.append(record)
+        
+        return valid_records
+    
+    async def _generate_single_observation_async(self, date: str, 
+                                                 correlation_pkg: Dict[str, Any],
+                                                 sensor_type: str) -> Dict[str, Any]:
+        """Generate a single sensor observation asynchronously"""
+        
+        gt = correlation_pkg["ground_truth"]
+        
+        # Calculate sensor detection time (varies by sensor)
+        sensor_time_offset = self._get_sensor_time_offset(sensor_type)
+        detection_time = self.correlation_manager.apply_time_adjustment(
+            gt["time"], 
+            sensor_time_offset
+        )
+        
+        # Create prompt
+        prompt = self._create_sensor_observation_prompt(
+            date, gt, sensor_type, detection_time, correlation_pkg["correlation_id"]
+        )
+        
+        try:
+            response = await self.async_client.generate_structured_data(
+                prompt,
+                system_prompt=self.SYSTEM_PROMPT
+            )
+            
+            records = response.get("enemy_activity_records", [])
+            
+            if not records:
+                logger.warning(f"No record generated for {correlation_pkg['correlation_id']}")
+                return None
+            
+            record = records[0]  # Take first record
+            
+            # Validate correlation_id
+            if not record.get("correlation_id"):
+                record["correlation_id"] = correlation_pkg["correlation_id"]
+            
+            # Add metadata
+            record["sensor_type"] = sensor_type
+            record["sensor_id"] = self._get_sensor_id(sensor_type)
+            
+            # Add unit information
+            fmn_code = self.unit_fmn_codes[0]
+            unit_info = FORMATION_MAPPING[fmn_code].copy()
+            unit_info["fmn_code"] = fmn_code
+            record.update(unit_info)
+            
+            return record
+            
+        except Exception as e:
+            logger.error(f"Error generating observation for {correlation_pkg['correlation_id']}: {e}")
+            return None
+    
+    def _get_sensor_time_offset(self, sensor_type: str) -> int:
+        """Get time offset for sensor detection (minutes relative to ground truth)"""
+        
+        offsets = {
+            "GROUND_SURVEILLANCE_RADAR": random.randint(-5, 10),  # Slightly before to slightly after
+            "SEISMIC_SENSOR": random.randint(-3, 5),  # Quick detection
+            "THERMAL_SENSOR": random.randint(-5, 10)  # Can detect prep or ongoing
+        }
+        
+        return offsets.get(sensor_type, 0)
+    
+    def _get_sensor_id(self, sensor_type: str) -> str:
+        """Generate sensor ID based on type"""
+        
+        sensor_ids = {
+            "GROUND_SURVEILLANCE_RADAR": f"GSR-14-CORPS-{random.randint(1, 5):02d}",
+            "SEISMIC_SENSOR": f"SEISMIC-ARRAY-{random.randint(1, 8):02d}",
+            "THERMAL_SENSOR": f"THERMAL-ARRAY-{random.randint(1, 7):02d}"
+        }
+        
+        return sensor_ids.get(sensor_type, "SENSOR-UNKNOWN")
+    
+    def _create_sensor_observation_prompt(self, date: str, ground_truth: Dict[str, Any],
+                                         sensor_type: str, detection_time: str,
+                                         correlation_id: str) -> str:
+        """Create prompt for independent sensor observation"""
+        
+        # Get sensor-specific capabilities
+        sensor_capabilities = self._get_sensor_capabilities(sensor_type)
+        
+        # Get equipment context samples
+        equipment_pak = random.sample(
+            MILITARY_INTELLIGENCE_LANGUAGE.get('equipment_specifics_pakistan', []),
+            min(2, len(MILITARY_INTELLIGENCE_LANGUAGE.get('equipment_specifics_pakistan', [])))
+        )
+        
+        prompt = f"""Date: {date}
+Sensor Type: {sensor_type}
+Detection Time: {detection_time}
+
+GROUND TRUTH EVENT (for reference - sensor doesn't know all these details):
+- Actor: {ground_truth.get('actor')}
+- Activity: {ground_truth.get('event_type')}
+- Location: {ground_truth.get('location_name')}
+- Equipment: {', '.join(ground_truth.get('equipment_involved', []))}
+- Strength: {ground_truth.get('strength', '')}
+
+SENSOR CAPABILITIES:
+{sensor_capabilities}
+
+EQUIPMENT CONTEXT (general knowledge):
+{chr(10).join(['• ' + e for e in equipment_pak])}
+
+Generate EXACTLY 1 independent sensor observation record from THIS SENSOR'S PERSPECTIVE ONLY.
+
+CRITICAL REQUIREMENTS:
+1. This sensor operates INDEPENDENTLY - it does NOT know what ELINT, IMINT, or TACINT detected
+2. Generate observation based ONLY on what THIS SENSOR TYPE can detect
+3. Use sensor-specific language and measurements
+4. DO NOT cite or reference other intelligence sources
+5. Sensor detected this activity at {detection_time} hours
+
+REQUIRED FIELDS:
+- sensor_type: "{sensor_type}"
+- sensor_id: (will be added automatically)
+- tgt_type: "VEHICLE" | "PERSONNEL" | "INSTALLATION" | "EQUIPMENT"
+- tgt_sub_type: based on sensor capability (e.g., "TRACKED_VEHICLE", "WHEELED_VEHICLE", "PERSONNEL_GROUP")
+- tgt_cl: based on sensor capability (e.g., "ARMORED_VEHICLE", "TRANSPORT", "INFANTRY")
+- activity_type: "MOVEMENT" | "COMBAT" | "CONSTRUCTION" | "RECONNAISSANCE"
+- activity_sub_type: e.g., "VEHICULAR" | "FOOT_PATROL" | "DEFENSIVE_POSITION"
+- activity_cl: e.g., "TACTICAL_DEPLOYMENT" | "PATROL" | "FORTIFICATION"
+- bearing: (0-360 degrees, e.g., "275")
+- range_km: (detection range based on sensor type, e.g., "12.5")
+- str: (estimated strength from sensor perspective, e.g., "Multiple tracked vehicles, estimated 10-15 units")
+- long: (from ground truth location: {ground_truth.get('location', [0, 0])[0]})
+- lat: (from ground truth location: {ground_truth.get('location', [0, 0])[1]})
+- ht: (height from location, or 3000-5000)
+- e: (easting 383000-385000)
+- n: (northing 3815000-3820000)
+- zone: "43S"
+- input_method: (sensor-specific method, e.g., "Ground surveillance radar detection")
+- description: (100-150 words, sensor-specific perspective, see structure below)
+- upload_time: "{date} {detection_time}" format with +10-20 min processing delay
+- correlation_id: "{correlation_id}"
+
+DESCRIPTION STRUCTURE (100-150 words):
+1. Sensor identification and detection time: "[Sensor type] [sensor_id] detected [activity] at [time] hours..."
+2. Technical measurements: "At bearing [X] degrees, range [Y] kilometers from sensor location..."
+3. Sensor-specific details: For radar: "Radar return signatures indicate..." / For seismic: "Seismic vibration patterns show..." / etc.
+4. What sensor detected: Based on sensor capabilities, describe what it CAN detect (not full picture)
+5. Inferred activity type: "Movement pattern indicates [type of activity] based on [sensor signature]..."
+6. Confidence assessment: "Assessed as [confidence level] based on [sensor data quality]..."
+
+CRITICAL: Write ONLY from this sensor's perspective. Do NOT reference ELINT, IMINT, TACINT, or other sensors!
+
+EXAMPLE (use as template):
+{{
+  "sensor_type": "{sensor_type}",
+  "tgt_type": "VEHICLE",
+  "tgt_sub_type": "TRACKED_VEHICLE",
+  "tgt_cl": "ARMORED_VEHICLE",
+  "activity_type": "MOVEMENT",
+  "activity_sub_type": "VEHICULAR",
+  "activity_cl": "TACTICAL_DEPLOYMENT",
+  "bearing": "275",
+  "range_km": "12.5",
+  "str": "Multiple tracked vehicles, estimated 10-15 units",
+  "long": {ground_truth.get('location', [76.1, 34.5])[0]},
+  "lat": {ground_truth.get('location', [76.1, 34.5])[1]},
+  "ht": 4590,
+  "e": 384251,
+  "n": 3817136,
+  "zone": "43S",
+  "input_method": "{sensor_type.replace('_', ' ').title()} detection",
+  "description": "Write sensor-specific description here from THIS SENSOR'S PERSPECTIVE ONLY. 100-150 words. Include sensor identification, detection time, technical measurements, sensor-specific signatures, what was detected, inferred activity, and confidence based on sensor data quality.",
+  "upload_time": "{date} {detection_time}",
+  "correlation_id": "{correlation_id}"
 }}
 
-Return JSON: {{"enemy_activity_records": [... {len(group_summaries)} fused records ...]}}
+Return JSON: {{"enemy_activity_records": [... 1 record ...]}}
 
-Generate the {len(group_summaries)} comprehensive fusion records now:"""
+Generate the independent sensor observation now:"""
         
         return prompt
+    
+    def _get_sensor_capabilities(self, sensor_type: str) -> str:
+        """Get sensor-specific capabilities description"""
+        
+        capabilities = {
+            "GROUND_SURVEILLANCE_RADAR": """Ground Surveillance Radar Capabilities:
+- Detection Range: 10-20 kilometers
+- Can Detect: Vehicle movement, size/type (tracked vs wheeled), formation, speed, direction
+- Cannot Detect: Specific equipment models, visual details, personnel faces
+- Measurements: Bearing, range, velocity, radar cross-section
+- Output: Radar return strength, Doppler shift, target profile
+- Limitations: Cannot identify specific vehicle models, affected by terrain masking""",
+            
+            "SEISMIC_SENSOR": """Seismic Sensor Capabilities:
+- Detection Range: 5-15 kilometers (varies by terrain)
+- Can Detect: Ground vibrations from vehicles/equipment, heavy movement, construction
+- Cannot Detect: Airborne activity, stationary targets, light personnel movement
+- Measurements: Vibration intensity, frequency, pattern, approximate location
+- Output: Seismic signature strength, vibration pattern analysis
+- Limitations: Cannot identify specific equipment, approximate location only""",            
+            
+            "THERMAL_SENSOR": """Thermal Sensor Capabilities:
+- Detection Range: 3-10 kilometers
+- Can Detect: Heat signatures from vehicles/equipment/personnel, engine heat, thermal patterns
+- Cannot Detect: Cold/ambient temperature objects, specific equipment models
+- Measurements: Thermal signature intensity, heat pattern, approximate count
+- Output: Thermal image, heat intensity levels, signature classification
+- Limitations: Cannot identify specific equipment, only heat signatures"""
+        }
+        
+        return capabilities.get(sensor_type, "Unknown sensor capabilities")

@@ -8,3 +8,4 @@ python-dotenv>=1.0.0
 tqdm>=4.66.1
 json-repair>=0.10.1
 openai>=0.27.8,<0.28.0
+asyncio>=3.0.3

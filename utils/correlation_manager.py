@@ -9,6 +9,15 @@ logger = logging.getLogger(__name__)
 
 
 class CorrelationManager:
+    def load_from_dict(self, registry_dict: dict):
+        """Load correlation_registry and event_to_correlation from a dict (for cached pipeline resume)"""
+        if "correlation_registry" in registry_dict:
+            self.correlation_registry = registry_dict["correlation_registry"]
+        if "event_to_correlation" in registry_dict:
+            self.event_to_correlation = registry_dict["event_to_correlation"]
+        # Optionally restore correlation_id_counter for correct ID generation
+        if self.correlation_registry:
+            self.correlation_id_counter = len(self.correlation_registry)
     """
     Centralized correlation manager to ensure consistent correlation IDs
     across all intelligence sources.
