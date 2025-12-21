@@ -1,0 +1,247 @@
+-- Table: public.e_sitrep_mst
+
+-- DROP TABLE IF EXISTS public.e_sitrep_mst;
+
+CREATE TABLE IF NOT EXISTS public.e_sitrep_mst
+(
+    incident_date DATE,
+    incident_time TIME,
+    precedence VARCHAR(50),
+    incident_type VARCHAR(255),
+    incident_sub_type VARCHAR(255),
+    incident_cl VARCHAR(255),
+    source VARCHAR(255),
+    str_own TEXT,
+    str_en TEXT,
+    longitude DOUBLE PRECISION,
+    latitude DOUBLE PRECISION,
+    height INTEGER,
+    easting INTEGER,
+    northing INTEGER,
+    zone VARCHAR(10),
+    incident_status VARCHAR(50),
+    description TEXT,
+    upload_time TIMESTAMP,
+    id SERIAL PRIMARY KEY,
+    cmd_name VARCHAR(255),
+    corps_name VARCHAR(255),
+    div_name VARCHAR(255),
+    bde_name VARCHAR(255),
+    unit_name VARCHAR(255),
+    hierarchy_level VARCHAR(100),
+    fmn_code VARCHAR(50)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.e_sitrep_mst
+    OWNER to turintonadmin;
+
+
+-- Table: public.elint
+
+-- DROP TABLE IF EXISTS public.elint;
+
+CREATE TABLE IF NOT EXISTS public.elint
+(
+    observation_date DATE,
+    from_time TIME,
+    to_time TIME,
+    enemy_unit VARCHAR(255),
+    location_name VARCHAR(255),
+    range_km VARCHAR(50),
+    emitter_type VARCHAR(100),
+    emitter_name VARCHAR(255),
+    frequency VARCHAR(50),
+    longitude DOUBLE PRECISION,
+    latitude DOUBLE PRECISION,
+    height INTEGER,
+    easting INTEGER,
+    northing INTEGER,
+    zone VARCHAR(10),
+    description TEXT,
+    id SERIAL PRIMARY KEY,
+    cmd_name VARCHAR(255),
+    corps_name VARCHAR(255),
+    div_name VARCHAR(255),
+    bde_name VARCHAR(255),
+    unit_name VARCHAR(255),
+    hierarchy_level VARCHAR(100),
+    fmn_code VARCHAR(50)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.elint
+    OWNER to turintonadmin;
+
+
+-- Table: public.en_activity
+
+-- DROP TABLE IF EXISTS public.en_activity;
+
+CREATE TABLE IF NOT EXISTS public.en_activity
+(
+    id SERIAL PRIMARY KEY,
+    sensor_type VARCHAR(100),
+    sensor_id VARCHAR(100),
+    tgt_type VARCHAR(100),
+    tgt_sub_type VARCHAR(100),
+    tgt_cl VARCHAR(100),
+    activity_type VARCHAR(100),
+    activity_sub_type VARCHAR(100),
+    activity_cl VARCHAR(100),
+    bearing VARCHAR(10),
+    range_km VARCHAR(20),
+    str TEXT,
+    longitude DOUBLE PRECISION,
+    latitude DOUBLE PRECISION,
+    height INTEGER,
+    easting INTEGER,
+    northing INTEGER,
+    zone VARCHAR(10),
+    input_method VARCHAR(255),
+    description TEXT,
+    upload_time TIMESTAMP,
+    cmd_name VARCHAR(255),
+    corps_name VARCHAR(255),
+    div_name VARCHAR(255),
+    bde_name VARCHAR(255),
+    unit_name VARCHAR(255),
+    hierarchy_level VARCHAR(100),
+    fmn_code BIGINT
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.en_activity
+    OWNER to turintonadmin;
+
+
+
+-- Table: public.imint_data
+
+-- DROP TABLE IF EXISTS public.imint_data;
+
+CREATE TABLE IF NOT EXISTS public.imint_data
+(
+    id SERIAL PRIMARY KEY,
+    observation_date DATE,
+    observation_time TIME,
+    precedence VARCHAR(50),
+    tgt_type VARCHAR(100),
+    tgt_sub_type VARCHAR(100),
+    tgt_cl VARCHAR(100),
+    activity_type VARCHAR(100),
+    activity_sub_type VARCHAR(100),
+    activity_cl VARCHAR(100),
+    incident_type VARCHAR(100),
+    incident_sub_type VARCHAR(100),
+    incident_cl VARCHAR(100),
+    source_agency VARCHAR(100),
+    grading VARCHAR(10),
+    strength TEXT,
+    longitude DOUBLE PRECISION,
+    latitude DOUBLE PRECISION,
+    height INTEGER,
+    easting INTEGER,
+    northing INTEGER,
+    zone VARCHAR(10),
+    input_method VARCHAR(255),
+    description TEXT,
+    upload_time TIMESTAMP,
+    cmd_name VARCHAR(255),
+    corps_name VARCHAR(255),
+    div_name VARCHAR(255),
+    bde_name VARCHAR(255),
+    unit_name VARCHAR(255),
+    hierarchy_level VARCHAR(100),
+    fmn_code VARCHAR(50)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.imint_data
+    OWNER to turintonadmin;
+
+
+-- Table: public.tac_int
+
+-- DROP TABLE IF EXISTS public.tac_int;
+
+CREATE TABLE IF NOT EXISTS public.tac_int
+(
+    id SERIAL PRIMARY KEY,
+    observation_date DATE,
+    observation_time TIME,
+    precedence VARCHAR(50),
+    tgt_type VARCHAR(100),
+    tgt_sub_type VARCHAR(100),
+    tgt_cl VARCHAR(100),
+    activity_type VARCHAR(100),
+    activity_sub_type VARCHAR(100),
+    activity_cl VARCHAR(100),
+    incident_type VARCHAR(100),
+    incident_sub_type VARCHAR(100),
+    incident_cl VARCHAR(100),
+    source_agency VARCHAR(255),
+    grading VARCHAR(10),
+    strength TEXT,
+    longitude DOUBLE PRECISION,
+    latitude DOUBLE PRECISION,
+    height INTEGER,
+    easting INTEGER,
+    northing INTEGER,
+    zone VARCHAR(10),
+    input_method VARCHAR(255),
+    description TEXT,
+    upload_time TIMESTAMP,
+    cmd_name VARCHAR(255),
+    corps_name VARCHAR(255),
+    div_name VARCHAR(255),
+    bde_name VARCHAR(255),
+    unit_name VARCHAR(255),
+    hierarchy_level VARCHAR(100),
+    fmn_code BIGINT
+    grading text COLLATE pg_catalog."default",
+    strength text COLLATE pg_catalog."default",
+    longitude text COLLATE pg_catalog."default",
+    latitude text COLLATE pg_catalog."default",
+    height text COLLATE pg_catalog."default",
+    easting text COLLATE pg_catalog."default",
+    northing text COLLATE pg_catalog."default",
+    zone text COLLATE pg_catalog."default",
+    input_method text COLLATE pg_catalog."default",
+    description text COLLATE pg_catalog."default",
+    upload_time text COLLATE pg_catalog."default",
+    id text COLLATE pg_catalog."default",
+    cmd_name text COLLATE pg_catalog."default",
+    corps_name text COLLATE pg_catalog."default",
+    div_name text COLLATE pg_catalog."default",
+    bde_name text COLLATE pg_catalog."default",
+    unit_name text COLLATE pg_catalog."default",
+    hierarchy_level text COLLATE pg_catalog."default",
+    fmn_code text COLLATE pg_catalog."default"
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.tac_int
+    OWNER to turintonadmin;
+
+
+
+INSERT INTO e_sitrep_mst (incident_date, incident_time, precedence, incident_type, incident_sub_type, incident_cl, source, str_own, str_en, longitude, latitude, height, easting, northing, zone, incident_status, description, upload_time, id, cmd_name, corps_name, div_name, bde_name, unit_name, hierarchy_level, fmn_code) VALUES ('1999-05-08', '03:45', 'IMMEDIATE', 'BORDER_VIOLATION', 'TROOP_INCURSION', 'ARMED_INCURSION', '70 Infantry Brigade Intelligence Section', '17 Jat Regiment Bravo Company (115 personnel), BSF Battalion 136 observation element (30 personnel), 8 Sikh Light Infantry platoon (35 personnel) on standby', 'Pakistani 12th Northern Light Infantry Alpha Company reinforced rifle company (140 personnel, 3 rifle platoons, 1 weapons section), 4x RPG-7V launchers, 2x 60mm mortars, 1x 12.7mm DShK heavy machine gun', 76.1158, 34.5447, 4590, 384251, 3817136, '43S', 'ONGOING', 'Pakistani 12th Northern Light Infantry Alpha Company comprising reinforced rifle company (140 personnel) with 3 rifle platoons and weapons section equipped with 4x RPG-7V launchers, 2x 60mm mortars, and 1x 12.7mm DShK heavy machine gun initiated tactical infiltration movement toward Tololing Summit at 03:45 hours local time utilizing covered approach routes. Initial detection by BSF Battalion 136 Observation Post Charlie-3 at 03:30 hours through night vision equipment, immediately reported to 70 Infantry Brigade headquarters with immediate priority classification due to company-strength incursion. Indian forces responded by deploying 17 Jat Regiment Bravo Company (115 personnel) to blocking positions along ridgeline with interlocking fields of fire covering likely infiltration routes. 8 Sikh Light Infantry platoon (35 personnel) placed on immediate standby for rapid reinforcement with 81mm mortar section providing indirect fire support capability. Incident status ONGOING as of 04:15 hours with Pakistani forces continuing tactical movement under cover of darkness, estimated 800 meters from Indian defensive positions. No exchange of fire reported, both forces maintaining noise and light discipline. Indian forces maintaining defensive posture with thermal imaging surveillance and continuous reporting of enemy movement patterns to brigade tactical operations center. Brigade commander has authorized rules of engagement for defensive fire if Pakistani forces approach within 400 meters or demonstrate weapons preparation.', '1999-05-08 04:15', 1, 'Northern Command', 'XIV Corps', '8 Mountain Division', '70 Infantry Brigade', '70 Infantry Brigade Headquarters', 'Brigade', 'NC14087000');
+INSERT INTO e_sitrep_mst (incident_date, incident_time, precedence, incident_type, incident_sub_type, incident_cl, source, str_own, str_en, longitude, latitude, height, easting, northing, zone, incident_status, description, upload_time, id, cmd_name, corps_name, div_name, bde_name, unit_name, hierarchy_level, fmn_code) VALUES ('1999-05-08', '08:00', 'PRIORITY', 'FORCE_POSTURING', 'EQUIPMENT_BUILDUP', 'DEFENSIVE_CONSTRUCTION', 'Battalion observation post', '18 Grenadiers Alpha Company (125 personnel), BSF Battalion 136 reconnaissance section (20 personnel), Medical Evacuation Team 92 Field Hospital on standby', 'Pakistani 12th Northern Light Infantry Bravo Company rifle company (90 personnel, 3 platoons), PKM 7.62mm machine guns, 60mm mortar section, engineering equipment including entrenching tools and construction materials', 76.116, 34.545, 4620, 384280, 3817145, '43S', 'ONGOING', 'Pakistani 12th Northern Light Infantry Bravo Company rifle company (90 personnel) with 3 platoons equipped with PKM 7.62mm machine guns and integral 60mm mortar section commenced construction of defensive positions across Three Pimples Complex at 08:00 hours local time utilizing engineering equipment and construction materials. Initial detection by 18 Grenadiers forward observation post at 07:45 hours through optical surveillance, immediately reported to battalion headquarters with priority classification due to defensive construction activity on dominant terrain. Indian forces responded by deploying 18 Grenadiers Alpha Company (125 personnel) to counter-observation positions with laser rangefinders and thermal imaging equipment for continuous surveillance of construction activities. BSF Battalion 136 reconnaissance section (20 personnel) positioned for detailed intelligence collection on enemy defensive preparations and equipment identification. Medical Evacuation Team 92 Field Hospital placed on standby alert for potential casualty evacuation requirements. Incident status ONGOING as of 08:30 hours with Pakistani forces actively constructing bunkers and fighting positions using timber, sandbags, and camouflage netting across multiple ridgeline positions. Construction activity indicates long-term occupation intent with overhead protection and interlocking fields of fire. Indian forces maintaining observation posture with detailed reporting of construction progress, defensive layout, and weapons positioning to battalion tactical operations center. Battalion commander has requested artillery fire mission planning for registered targets on construction sites.', '1999-05-08 08:30', 2, 'Northern Command', 'XIV Corps', '8 Mountain Division', '79 Mountain Brigade', '79 Mountain Brigade Headquarters', 'Brigade', 'NC14087900');
+
+INSERT INTO elint (observation_date, from_time, to_time, enemy_unit, location_name, range_km, emitter_type, emitter_name, frequency, longitude, latitude, height, easting, northing, zone, description, id, cmd_name, corps_name, div_name, bde_name, unit_name, hierarchy_level, fmn_code) VALUES ('1999-05-08', '23:33', '23:52', 'Pakistani 12th Northern Light Infantry - Alpha Company', 'Tololing Summit', '11.8', 'COMMUNICATIONS', 'TRC-20H Tactical Radio', '52.375', 76.1158, 34.5447, 4590, 384251, 3817136, '43S', 'Intercepted encrypted VHF burst transmissions on frequency 52.375 MHz originating from Tololing Summit at 2333 hours local time. Direction finding analysis utilizing four monitoring stations (DF accuracy ±500m) places emission source at grid reference 384251 3817136, elevation 4590 meters. Signal analysis identifies emission pattern consistent with Pakistani TRC-20H tactical radio operating in secure voice mode with frequency hopping enabled across 30-76 MHz band. Transmission duration 19 minutes indicates intensive tactical coordination session, likely company-level movement preparation based on compressed message intervals and increased traffic volume. Signal strength measured at -82 dBm suggests transmitter operating at standard power setting (5W) at range of approximately 11.8 kilometers from primary intercept site. Communications security protocols include voice encryption and rapid frequency agility, demonstrating professional military COMSEC discipline. Traffic analysis reveals characteristic pre-movement communication patterns with shortened transmission times and increased call frequency. Call sign patterns consistent with 12th Northern Light Infantry company tactical net architecture. Network structure indicates battalion-to-company coordination for imminent tactical operation. SIGINT assessment: Unit demonstrates advanced communications security practices and tactical proficiency. Intercepted traffic timing and pattern analysis strongly correlates with preparation for night infiltration movement, as radio coordination typically intensifies 10-15 minutes prior to tactical displacement in mountain warfare operations.', 1, 'Northern Command', 'XIV Corps', '8 Mountain Division', '70 Infantry Brigade', 'Electronic Warfare Unit 112', 'Brigade', 'NC14087001');
+INSERT INTO elint (observation_date, from_time, to_time, enemy_unit, location_name, range_km, emitter_type, emitter_name, frequency, longitude, latitude, height, easting, northing, zone, description, id, cmd_name, corps_name, div_name, bde_name, unit_name, hierarchy_level, fmn_code) VALUES ('1999-05-08', '03:30', '03:48', 'Indian 3 Punjab Regiment reconnaissance patrol', 'Tololing Nala', '8.2', 'COMMUNICATIONS', 'ANPRC-25 Tactical Radio', '38.450', 76.115, 34.544, 4200, 384180, 3817089, '43S', 'Intercepted clear voice transmissions on frequency 38.450 MHz from Tololing Nala sector at 0330 hours local time. Direction finding triangulation utilizing dual monitoring stations (DF accuracy ±500m) places emission source at grid reference 384180 3817089, elevation 4200 meters. Signal characteristics consistent with Indian ANPRC-25 tactical radio operating in standard VHF mode without encryption capability. Transmission duration 18 minutes indicates routine patrol coordination, likely platoon-level reconnaissance preparation based on traffic volume and procedural radio checks observed. Signal strength measured at -74 dBm suggests transmitter operating at low power setting (1-2W) at range of approximately 8.2 kilometers from intercept facility. Communications discipline reflects standard Indian Army patrol procedures with scheduled radio checks and position reports. Traffic analysis reveals routine pre-patrol coordination including equipment checks, route confirmation, and reporting schedule establishment. Call sign patterns and net control procedures consistent with 3 Punjab Regiment platoon-level tactical communications architecture. Network structure indicates company-to-platoon coordination for scheduled reconnaissance mission. SIGINT assessment: Standard military communications procedures observed with predictable transmission patterns. Intercepted traffic indicates preparation for routine border surveillance patrol, as radio coordination typically occurs 10-15 minutes prior to patrol departure. Emission characteristics match known Indian Army tactical radio operating procedures for reconnaissance operations in mountainous terrain.', 2, 'Northern Command', 'XIV Corps', '8 Mountain Division', '79 Mountain Brigade', 'SIGINT Company 14 Corps', 'Brigade', 'NC14087901');
+
+INSERT INTO en_activity (sensor_type, sensor_id, tgt_type, tgt_sub_type, tgt_cl, activity_type, activity_sub_type, activity_cl, bearing, range_km, str, longitude, latitude, height, easting, northing, zone, input_method, description, upload_time, cmd_name, corps_name, div_name, bde_name, unit_name, hierarchy_level, fmn_code) VALUES ('THERMAL_SENSOR', 'THERMAL-ARRAY-06', 'EQUIPMENT', 'ARTILLERY_EQUIPMENT', 'HEAVY_WEAPONS', 'COMBAT', 'INDIRECT_FIRE', 'ARTILLERY_ENGAGEMENT', '315', '6.8', 'Multiple high-intensity heat sources, estimated 4-6 heavy weapons systems', 76.1158, 34.5447, 4590, 384251, 3817136, '43S', 'Thermal sensor array detection', 'Thermal sensor array THS-14-CORPS-07 detected multiple high-intensity heat signatures at bearing 315 degrees, range 6.8 kilometers from sensor location at 00:04 hours local time. Thermal imaging revealed 4-6 distinct high-temperature sources with heat intensity patterns consistent with heavy artillery pieces during active firing operations. Heat signatures showed rapid temperature spikes followed by sustained elevated thermal readings characteristic of large-caliber weapon systems. Additional moderate heat sources detected in proximity, indicating supporting equipment and personnel. Thermal patterns suggest coordinated firing sequence with staggered heat blooms occurring at 2-3 minute intervals. Background thermal activity indicates approximately 80-120 personnel based on body heat signatures distributed around primary heat sources. Temperature differential analysis confirms active combat operations rather than administrative activity. Weather conditions clear with minimal atmospheric thermal interference. Assessed as enemy artillery battery conducting active fire mission based on thermal signature intensity, firing pattern, and personnel concentration. Confidence level high based on clear thermal contrast and consistent firing signatures over 20-minute observation period.', '1999-06-18 00:24', 'Northern Command', 'XIV Corps', '8 Mountain Division', 'Division HQ', 'Intelligence Fusion Cell - 8 Mtn Div', 'Division', 14080000);
+INSERT INTO en_activity (sensor_type, tgt_type, tgt_sub_type, tgt_cl, activity_type, activity_sub_type, activity_cl, bearing, range_km, str, longitude, latitude, height, easting, northing, zone, input_method, description, upload_time, sensor_id, cmd_name, corps_name, div_name, bde_name, unit_name, hierarchy_level, fmn_code) VALUES ('SEISMIC_SENSOR', 'EQUIPMENT', 'HEAVY_EQUIPMENT', 'ARTILLERY', 'COMBAT', 'INDIRECT_FIRE', 'ARTILLERY_FIRE', '045', '8.2', 'Multiple heavy artillery pieces, estimated 4-6 guns', 76.1158, 34.5447, 4590, 384251, 3817136, '43S', 'Seismic sensor detection', 'Seismic sensor array SS-14-CORPS-07 detected intense ground vibrations consistent with heavy artillery fire at 00:04 hours local time. Seismic signatures registered at bearing 045 degrees, range approximately 8.2 kilometers from sensor location at grid reference 384251 3817136. Vibration patterns show characteristic double-pulse signatures typical of large-caliber artillery pieces firing, with ground shock intensity measuring 4.2 on local seismic scale. Frequency analysis indicates multiple heavy guns firing in sequence, estimated 4-6 artillery pieces based on distinct vibration sources and timing intervals. Ground tremor patterns consistent with 150-155mm class howitzers based on seismic amplitude and duration characteristics. Firing sequence shows coordinated battery fire with approximately 30-45 second intervals between volleys. Terrain coupling excellent due to rocky substrate, providing clear seismic propagation. Assessed as enemy artillery battery conducting fire mission based on sustained firing pattern and location in known hostile territory. Confidence high based on clear seismic signatures and consistent detection pattern over 20-minute observation period.', '1999-06-18 00:14', 'SEISMIC-ARRAY-02', 'Northern Command', 'XIV Corps', '8 Mountain Division', 'Division HQ', 'Intelligence Fusion Cell - 8 Mtn Div', 'Division', 14080000);
+
+INSERT INTO imint_data (observation_date, observation_time, precedence, tgt_type, tgt_sub_type, tgt_cl, activity_type, activity_sub_type, activity_cl, incident_type, incident_sub_type, incident_cl, source_agency, grading, strength, longitude, latitude, height, easting, northing, zone, input_method, description, upload_time, id, cmd_name, corps_name, div_name, bde_name, unit_name, hierarchy_level, fmn_code) VALUES ('1999-05-08', '00:35', 'PRIORITY', 'PERSONNEL', 'INFANTRY', 'LIGHT_INFANTRY', 'MOVEMENT', 'DISMOUNTED', 'TACTICAL_INFILTRATION', 'FORCE_POSTURING', 'TROOP_MOVEMENT', 'INFANTRY_INFILTRATION', 'RISAT-2', 'B2', 'company-strength, approximately 130-140 personnel', 76.1158, 34.5447, 4590, 384251, 3817136, '43S', 'RISAT-2 SAR acquisition #RS2-08942', 'RISAT-2 SAR imagery (3m resolution) from acquisition #RS2-08942 at 0035 hours reveals probable infantry movement toward Tololing Summit area at elevation 4590 meters. SAR imagery penetrated 21% cloud cover to reveal movement signatures consistent with dismounted personnel in tactical formation. Image analysis identifies heat signatures and movement patterns indicating company-strength element, approximately 130-140 personnel, utilizing covered approach routes along western ridgeline. Personnel spacing and formation indicates light infantry unit conducting tactical infiltration during limited visibility conditions. Track patterns in terrain show multiple parallel routes suggesting platoon-level organization with approximately 30-40 personnel per route. Thermal signatures consistent with personnel carrying standard infantry equipment loads. Movement orientation northeast toward summit positions with tactical bounds visible between terrain features. Weather conditions 21% cloud cover with reduced visibility affecting optical sensors but SAR penetration adequate for movement detection. Change detection analysis comparing previous 6-hour period shows fresh personnel tracks and disturbed vegetation patterns along infiltration routes. Assessment: PROBABLE Pakistani Northern Light Infantry company conducting night infiltration movement toward forward positions in preparation for tactical operations against Indian defensive positions.', '1999-05-08 01:25', 1, 'Northern Command', 'XIV Corps', '8 Mountain Division', '56 Mountain Brigade', 'Imagery Analysis Cell 06', 'Division', 'NC14085601');
+INSERT INTO imint_data (observation_date, observation_time, precedence, tgt_type, tgt_sub_type, tgt_cl, activity_type, activity_sub_type, activity_cl, incident_type, incident_sub_type, incident_cl, source_agency, grading, strength, longitude, latitude, height, easting, northing, zone, input_method, description, upload_time, id, cmd_name, corps_name, div_name, bde_name, unit_name, hierarchy_level, fmn_code) VALUES ('1999-05-08', '08:33', 'ROUTINE', 'INSTALLATION', 'DEFENSIVE_POSITION', 'FIELD_FORTIFICATION', 'CONSTRUCTION', 'DEFENSIVE_POSITION', 'FORTIFICATION', 'FORCE_POSTURING', 'POSITION_CONSTRUCTION', 'DEFENSIVE_WORKS', 'CARTOSAT-3', 'B1', 'company-strength, approximately 85-95 personnel', 76.116, 34.545, 4575, 384265, 3817108, '43S', 'Satellite pass #CS3-14257', 'CARTOSAT-3 overhead imagery (0.25m resolution) from satellite pass #CS3-14257 at 0833 hours reveals active construction activity across Three Pimples Complex at elevation 4575 meters. Image analysis identifies 85-95 personnel engaged in defensive position construction with visible excavation work and material placement. Overhead perspective shows 8-10 individual fighting positions under construction with characteristic rectangular excavation patterns and spoil displacement. Construction materials visible include timber frameworks and sandbag emplacements positioned for overhead cover. Personnel spacing and work patterns indicate company-level organization with approximately 30 personnel per major position cluster. Equipment signatures consistent with entrenching tools and construction materials pre-positioned at site. Weather conditions 31% cloud cover providing fair visibility across construction area. Camouflage netting deployment visible over 4-5 completed positions indicating operational security measures. Track patterns show supply routes from western approaches with evidence of material transport. Tactical disposition of positions oriented toward Indian observation posts with interlocking fields of fire. Change detection analysis comparing imagery from 24 hours prior shows significant progress in defensive works construction. Assessment: PROBABLE Pakistani Northern Light Infantry company establishing prepared defensive positions across strategic terrain feature.', '1999-05-08 09:15', 2, 'Northern Command', 'XIV Corps', '3 Infantry Division', '68 Mountain Brigade', 'Imagery Analysis Cell 03', 'Division', 'NC14036801');
+
+INSERT INTO tac_int (observation_date, observation_time, precedence, tgt_type, tgt_sub_type, tgt_cl, activity_type, activity_sub_type, activity_cl, incident_type, incident_sub_type, incident_cl, source_agency, grading, strength, longitude, latitude, height, easting, northing, zone, input_method, description, upload_time, id, cmd_name, corps_name, div_name, bde_name, unit_name, hierarchy_level, fmn_code) VALUES ('1999-05-08', '00:17', 'IMMEDIATE', 'PERSONNEL', 'INFANTRY', 'LIGHT_INFANTRY', 'MOVEMENT', 'DISMOUNTED', 'TACTICAL_INFILTRATION', 'BORDER_VIOLATION', 'TROOP_INCURSION', 'ARMED_INFILTRATION', 'BSF Observation Post Tango-4', 'A2', 'company-strength, 130-140 personnel', 76.1158, 34.5447, 4590, 384251, 3817136, '43S', 'Visual observation with Carl Zeiss 20x60 spotting scope and thermal imaging assist', 'Large infantry formation first observed at 2345 hours from BSF Observation Post Tango-4 at range 2.9 kilometers utilizing Carl Zeiss 20x60 spotting scope with thermal imaging supplementary observation. Counted approximately 130-140 personnel moving in tactical column formation along Tololing Summit approach routes during limited visibility conditions. Personnel identification assessed as probable Pakistani 12th Northern Light Infantry based on distinctive equipment silhouettes and movement patterns visible through thermal optics. Individual soldiers carrying G3A3 7.62mm rifles identifiable by characteristic muzzle profile and stock configuration. Heavy weapons section observed with RPG-7V launchers and crew-served weapons including what appears to be 12.7mm DShK heavy machine gun based on bipod configuration and barrel length. Movement conducted with tactical discipline, maintaining noise discipline and utilizing natural terrain features for concealment. Thermal signatures indicate recent physical exertion consistent with extended mountain movement. Weather conditions include light snow with temperature approximately minus 2 degrees Celsius, visibility limited to 800 meters without optics. Formation moving in single file with 5-meter spacing between individuals, standard mountain warfare doctrine. Point element equipped with mine detection equipment visible through thermal imaging. No vehicle support observed, movement appears to be dismounted infantry only. Radio intercepts indicate TRC-20H tactical radio communications in Urdu. Assessment: Pakistani Northern Light Infantry company conducting tactical infiltration toward Indian positions. Threat level assessed as immediate. BSF post has alerted sector headquarters and quick reaction force deployment requested.', '1999-05-08 00:32', 1, 'Northern Command', 'XIV Corps', '8 Mountain Division', '70 Infantry Brigade', 'BSF Observation Post Delta-7', 'Battalion', 14087002);
+INSERT INTO tac_int (observation_date, observation_time, precedence, tgt_type, tgt_sub_type, tgt_cl, activity_type, activity_sub_type, activity_cl, incident_type, incident_sub_type, incident_cl, source_agency, grading, strength, longitude, latitude, height, easting, northing, zone, input_method, description, upload_time, id, cmd_name, corps_name, div_name, bde_name, unit_name, hierarchy_level, fmn_code) VALUES ('1999-05-08', '04:41', 'ROUTINE', 'PERSONNEL', 'RECONNAISSANCE', 'PATROL_ELEMENT', 'RECONNAISSANCE', 'PATROL', 'BORDER_SURVEILLANCE', 'FORCE_POSTURING', 'PATROL_ACTIVITY', 'ROUTINE_PATROL', 'BSF Observation Post Charlie-2', 'A1', 'platoon-strength, 25-30 personnel', 76.115, 34.544, 4580, 384201, 3817086, '43S', 'Visual observation with Carl Zeiss 10x50 binoculars', 'Indian Army reconnaissance patrol first observed at 0630 hours from BSF Observation Post Charlie-2 at range 1.7 kilometers utilizing Carl Zeiss 10x50 binoculars with clear morning visibility conditions. Counted 28 personnel in tactical patrol formation moving along Tololing Nala approach routes as part of scheduled border surveillance mission. Personnel identification confirmed as 3 Punjab Regiment based on distinctive unit insignia visible on combat uniforms and standard Indian Army patrol equipment configuration. Individual soldiers carrying INSAS 5.56mm rifles clearly identifiable by characteristic bullpup design and distinctive muzzle brake configuration. Light machine gun section observed with 7.62mm LMG and sniper element equipped with Dragunov rifle identifiable by distinctive stock design and PSO-1 optical sight. Radio operator carrying ANPRC-25 tactical radio with distinctive whip antenna configuration. Movement conducted with standard Indian Army patrol procedures, maintaining tactical spacing and utilizing proper reconnaissance techniques. Personnel wearing standard olive drab combat uniforms with mountain warfare equipment including cold weather gear. Weather conditions excellent with clear visibility, light winds from northeast, temperature approximately 8 degrees Celsius. Patrol moving in wedge formation with advance guard and rear security elements properly positioned. Surveillance equipment includes optical devices and range-finding equipment visible through binoculars. No unusual activity observed, patrol conducting routine border monitoring duties. Assessment: Standard Indian Army reconnaissance patrol conducting scheduled border surveillance operations. No immediate threat indicated. Routine patrol activity consistent with normal border security posture.', '1999-05-08 04:56', 2, 'Northern Command', 'XIV Corps', '8 Mountain Division', '79 Mountain Brigade', 'BSF Observation Post Alpha-3', 'Battalion', 14087902);

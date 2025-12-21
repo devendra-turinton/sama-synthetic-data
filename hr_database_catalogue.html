@@ -1,0 +1,2696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise HR Database Catalogue</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #2980b9;
+            margin-top: 40px;
+            border-left: 4px solid #3498db;
+            padding-left: 10px;
+        }
+        .phase-title {
+            background-color: #f8f9fa;
+            padding: 10px;
+            margin-top: 50px;
+            border-radius: 5px;
+            font-size: 1.5em;
+            color: #34495e;
+            text-align: center;
+            border-bottom: 2px solid #3498db;
+        }
+        .table-info {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .description {
+            background-color: #e8f4f8;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+            text-align: left;
+            padding: 10px;
+        }
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            vertical-align: top;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .sample-header {
+            background-color: #2c3e50;
+            color: white;
+        }
+        .navigation {
+            background-color: #34495e;
+            padding: 15px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        .navigation a {
+            color: white;
+            text-decoration: none;
+            margin-right: 15px;
+            font-weight: 500;
+        }
+        .navigation a:hover {
+            color: #3498db;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+        .stat-box {
+            background-color: #3498db;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+            margin-bottom: 10px;
+            flex: 1;
+            min-width: 150px;
+            margin: 5px;
+        }
+        .stat-box h3 {
+            margin: 0;
+            font-size: 2em;
+        }
+        .stat-box p {
+            margin: 5px 0 0;
+        }
+        footer {
+            margin-top: 50px;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <h1>Enterprise HR Database Catalogue</h1>
+    
+    <div class="navigation">
+        <a href="#phase1">Phase 1: Core HR</a>
+        <a href="#phase2">Phase 2: Time & Leave</a>
+        <a href="#phase3">Phase 3: Training</a>
+        <a href="#phase4">Phase 4: Travel</a>
+    </div>
+    
+    <div class="stats">
+        <div class="stat-box">
+            <h3>23</h3>
+            <p>Tables</p>
+        </div>
+        <div class="stat-box">
+            <h3>9,000+</h3>
+            <p>Records</p>
+        </div>
+        <div class="stat-box">
+            <h3>4</h3>
+            <p>Integrated Phases</p>
+        </div>
+        <div class="stat-box">
+            <h3>250</h3>
+            <p>Employees</p>
+        </div>
+        <div class="stat-box">
+            <h3>15</h3>
+            <p>Departments</p>
+        </div>
+    </div>
+    
+    <p>This catalogue provides a comprehensive overview of all 23 tables in the Enterprise HR Database system, organized by functional phase. Each section includes a table summary and sample records.</p>
+    
+    <!-- PHASE 1: CORE HR FOUNDATION -->
+    <div id="phase1" class="phase-title">PHASE 1: Core HR Foundation (9 Tables)</div>
+    
+    <div class="table-info">
+        <h2>1. locations</h2>
+        <div class="description">
+            <p>Stores information about company locations including offices, branches, and facilities.</p>
+            <p><strong>Primary Key:</strong> location_id</p>
+            <p><strong>Relations:</strong> Referenced by employee_master.current_location_id, positions.location_id, organization_structure.location_id</p>
+        </div>
+        
+        <table>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>location_id</td>
+                <td>INTEGER</td>
+                <td>Unique identifier for the location</td>
+            </tr>
+            <tr>
+                <td>location_code</td>
+                <td>TEXT</td>
+                <td>Business code for the location (e.g., LOC-001)</td>
+            </tr>
+            <tr>
+                <td>location_name</td>
+                <td>TEXT</td>
+                <td>Name of the location</td>
+            </tr>
+            <tr>
+                <td>address_line_1</td>
+                <td>TEXT</td>
+                <td>First line of address</td>
+            </tr>
+            <tr>
+                <td>address_line_2</td>
+                <td>TEXT</td>
+                <td>Second line of address (optional)</td>
+            </tr>
+            <tr>
+                <td>city</td>
+                <td>TEXT</td>
+                <td>City name</td>
+            </tr>
+            <tr>
+                <td>state</td>
+                <td>TEXT</td>
+                <td>State or province</td>
+            </tr>
+            <tr>
+                <td>postal_code</td>
+                <td>TEXT</td>
+                <td>Zip or postal code</td>
+            </tr>
+            <tr>
+                <td>country</td>
+                <td>TEXT</td>
+                <td>Country</td>
+            </tr>
+            <tr>
+                <td>location_type</td>
+                <td>TEXT</td>
+                <td>Type (HQ, Branch, Remote, Satellite, Field Office)</td>
+            </tr>
+            <tr>
+                <td>timezone</td>
+                <td>TEXT</td>
+                <td>Location timezone</td>
+            </tr>
+            <tr>
+                <td>active_flag</td>
+                <td>BOOLEAN</td>
+                <td>Whether location is active</td>
+            </tr>
+        </table>
+        
+        <h3>Sample Records</h3>
+        <table>
+            <tr class="sample-header">
+                <th>location_id</th>
+                <th>location_code</th>
+                <th>location_name</th>
+                <th>address_line_1</th>
+                <th>city</th>
+                <th>state</th>
+                <th>location_type</th>
+                <th>timezone</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>LOC-001</td>
+                <td>Williamsbury Office</td>
+                <td>4578 Smith Summit</td>
+                <td>Williamsbury</td>
+                <td>FL</td>
+                <td>HQ</td>
+                <td>EST</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>LOC-002</td>
+                <td>Port John Hub</td>
+                <td>20607 Jennifer Estate</td>
+                <td>Port John</td>
+                <td>NE</td>
+                <td>Branch</td>
+                <td>CST</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="table-info">
+        <h2>2. organization_structure</h2>
+        <div class="description">
+            <p>Contains hierarchical organizational structure information including departments, divisions, and teams.</p>
+            <p><strong>Primary Key:</strong> org_unit_id</p>
+            <p><strong>Relations:</strong> Referenced by employee_master.current_department_id, positions.department_id</p>
+        </div>
+        
+        <table>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>org_unit_id</td>
+                <td>INTEGER</td>
+                <td>Unique identifier for organizational unit</td>
+            </tr>
+            <tr>
+                <td>org_unit_code</td>
+                <td>TEXT</td>
+                <td>Business code for the unit (e.g., ORG-001)</td>
+            </tr>
+            <tr>
+                <td>org_unit_name</td>
+                <td>TEXT</td>
+                <td>Name of the organizational unit</td>
+            </tr>
+            <tr>
+                <td>org_unit_type</td>
+                <td>TEXT</td>
+                <td>Type (Department, Division, Team, Business Unit, Function)</td>
+            </tr>
+            <tr>
+                <td>parent_org_unit_id</td>
+                <td>INTEGER</td>
+                <td>ID of parent organizational unit</td>
+            </tr>
+            <tr>
+                <td>cost_center_code</td>
+                <td>TEXT</td>
+                <td>Cost center code</td>
+            </tr>
+            <tr>
+                <td>location_id</td>
+                <td>INTEGER</td>
+                <td>Primary location for this unit</td>
+            </tr>
+            <tr>
+                <td>headcount_limit</td>
+                <td>INTEGER</td>
+                <td>Maximum allowed headcount</td>
+            </tr>
+            <tr>
+                <td>current_headcount</td>
+                <td>INTEGER</td>
+                <td>Current employee count</td>
+            </tr>
+            <tr>
+                <td>org_level</td>
+                <td>INTEGER</td>
+                <td>Hierarchical level in organization</td>
+            </tr>
+            <tr>
+                <td>active_flag</td>
+                <td>BOOLEAN</td>
+                <td>Whether unit is active</td>
+            </tr>
+        </table>
+        
+        <h3>Sample Records</h3>
+        <table>
+            <tr class="sample-header">
+                <th>org_unit_id</th>
+                <th>org_unit_code</th>
+                <th>org_unit_name</th>
+                <th>org_unit_type</th>
+                <th>parent_org_unit_id</th>
+                <th>location_id</th>
+                <th>headcount_limit</th>
+                <th>current_headcount</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>ORG-001</td>
+                <td>Engineering Department</td>
+                <td>Department</td>
+                <td></td>
+                <td>3</td>
+                <td>45</td>
+                <td>37</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>ORG-002</td>
+                <td>Sales Department</td>
+                <td>Department</td>
+                <td>1</td>
+                <td>2</td>
+                <td>28</td>
+                <td>24</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="table-info">
+        <h2>3. job_classifications</h2>
+        <div class="description">
+            <p>Defines standardized job classifications including job families, levels, and regulatory classifications.</p>
+            <p><strong>Primary Key:</strong> job_classification_id</p>
+            <p><strong>Relations:</strong> Referenced by positions.job_classification_id</p>
+        </div>
+        
+        <table>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>job_classification_id</td>
+                <td>INTEGER</td>
+                <td>Unique identifier for job classification</td>
+            </tr>
+            <tr>
+                <td>job_family</td>
+                <td>TEXT</td>
+                <td>Functional area (Engineering, Sales, Marketing, etc.)</td>
+            </tr>
+            <tr>
+                <td>job_level</td>
+                <td>TEXT</td>
+                <td>Seniority level (Entry, Junior, Mid, Senior, etc.)</td>
+            </tr>
+            <tr>
+                <td>job_code</td>
+                <td>TEXT</td>
+                <td>Standardized job code</td>
+            </tr>
+            <tr>
+                <td>job_title</td>
+                <td>TEXT</td>
+                <td>Standard job title</td>
+            </tr>
+            <tr>
+                <td>job_description</td>
+                <td>TEXT</td>
+                <td>Description of the role</td>
+            </tr>
+            <tr>
+                <td>minimum_education</td>
+                <td>TEXT</td>
+                <td>Required education level</td>
+            </tr>
+            <tr>
+                <td>minimum_experience_years</td>
+                <td>INTEGER</td>
+                <td>Minimum years of experience required</td>
+            </tr>
+            <tr>
+                <td>flsa_status</td>
+                <td>TEXT</td>
+                <td>Fair Labor Standards Act classification (Exempt, Non-Exempt)</td>
+            </tr>
+            <tr>
+                <td>eeoc_category</td>
+                <td>TEXT</td>
+                <td>Equal Employment Opportunity Commission category</td>
+            </tr>
+        </table>
+        
+        <h3>Sample Records</h3>
+        <table>
+            <tr class="sample-header">
+                <th>job_classification_id</th>
+                <th>job_family</th>
+                <th>job_level</th>
+                <th>job_code</th>
+                <th>job_title</th>
+                <th>minimum_education</th>
+                <th>minimum_experience_years</th>
+                <th>flsa_status</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>Engineering</td>
+                <td>Entry</td>
+                <td>ENG-ENT-01</td>
+                <td>Entry Engineering Specialist</td>
+                <td>Bachelor's</td>
+                <td>0</td>
+                <td>Exempt</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>Engineering</td>
+                <td>Junior</td>
+                <td>ENG-JUN-02</td>
+                <td>Junior Engineering Specialist</td>
+                <td>Bachelor's</td>
+                <td>1</td>
+                <td>Exempt</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="table-info">
+        <h2>4. positions</h2>
+        <div class="description">
+            <p>Contains individual job positions within the organization, linking job classifications to departments.</p>
+            <p><strong>Primary Key:</strong> position_id</p>
+            <p><strong>Relations:</strong> Referenced by employee_master.current_position_id, employment_history.position_id</p>
+        </div>
+        
+        <table>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>position_id</td>
+                <td>INTEGER</td>
+                <td>Unique identifier for position</td>
+            </tr>
+            <tr>
+                <td>position_code</td>
+                <td>TEXT</td>
+                <td>Business code for position</td>
+            </tr>
+            <tr>
+                <td>position_title</td>
+                <td>TEXT</td>
+                <td>Title of the position</td>
+            </tr>
+            <tr>
+                <td>job_classification_id</td>
+                <td>INTEGER</td>
+                <td>Reference to job classification</td>
+            </tr>
+            <tr>
+                <td>department_id</td>
+                <td>INTEGER</td>
+                <td>Department this position belongs to</td>
+            </tr>
+            <tr>
+                <td>reports_to_position_id</td>
+                <td>INTEGER</td>
+                <td>Manager's position ID</td>
+            </tr>
+            <tr>
+                <td>location_id</td>
+                <td>INTEGER</td>
+                <td>Primary location for this position</td>
+            </tr>
+            <tr>
+                <td>employment_type</td>
+                <td>TEXT</td>
+                <td>Type (Full-Time, Part-Time, Contractor, Intern, Consultant)</td>
+            </tr>
+            <tr>
+                <td>fte_percentage</td>
+                <td>FLOAT</td>
+                <td>Full-time equivalent percentage</td>
+            </tr>
+            <tr>
+                <td>position_status</td>
+                <td>TEXT</td>
+                <td>Status (Open, Filled, On Hold, Cancelled)</td>
+            </tr>
+            <tr>
+                <td>budgeted_flag</td>
+                <td>BOOLEAN</td>
+                <td>Whether position is budgeted</td>
+            </tr>
+        </table>
+        
+        <h3>Sample Records</h3>
+        <table>
+            <tr class="sample-header">
+                <th>position_id</th>
+                <th>position_code</th>
+                <th>position_title</th>
+                <th>job_classification_id</th>
+                <th>department_id</th>
+                <th>reports_to_position_id</th>
+                <th>location_id</th>
+                <th>employment_type</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>POS-0001</td>
+                <td>Senior Engineering Specialist</td>
+                <td>7</td>
+                <td>1</td>
+                <td></td>
+                <td>1</td>
+                <td>Full-Time</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>POS-0002</td>
+                <td>Junior Sales Specialist</td>
+                <td>12</td>
+                <td>2</td>
+                <td>1</td>
+                <td>2</td>
+                <td>Full-Time</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="table-info">
+        <h2>5. employee_master</h2>
+        <div class="description">
+            <p>Core employee information table containing personal and employment details for all employees.</p>
+            <p><strong>Primary Key:</strong> employee_id</p>
+            <p><strong>Relations:</strong> Referenced by employment_history, compensation, leave_requests, training_assignments</p>
+        </div>
+        
+        <table>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>employee_id</td>
+                <td>INTEGER</td>
+                <td>Unique identifier for employee</td>
+            </tr>
+            <tr>
+                <td>employee_number</td>
+                <td>TEXT</td>
+                <td>Employee number for business use</td>
+            </tr>
+            <tr>
+                <td>first_name</td>
+                <td>TEXT</td>
+                <td>Employee's first name</td>
+            </tr>
+            <tr>
+                <td>middle_name</td>
+                <td>TEXT</td>
+                <td>Employee's middle name (optional)</td>
+            </tr>
+            <tr>
+                <td>last_name</td>
+                <td>TEXT</td>
+                <td>Employee's last name</td>
+            </tr>
+            <tr>
+                <td>email</td>
+                <td>TEXT</td>
+                <td>Work email address</td>
+            </tr>
+            <tr>
+                <td>personal_email</td>
+                <td>TEXT</td>
+                <td>Personal email address</td>
+            </tr>
+            <tr>
+                <td>phone_work</td>
+                <td>TEXT</td>
+                <td>Work phone number</td>
+            </tr>
+            <tr>
+                <td>phone_mobile</td>
+                <td>TEXT</td>
+                <td>Mobile phone number</td>
+            </tr>
+            <tr>
+                <td>date_of_birth</td>
+                <td>DATE</td>
+                <td>Date of birth</td>
+            </tr>
+            <tr>
+                <td>gender</td>
+                <td>TEXT</td>
+                <td>Gender (M, F)</td>
+            </tr>
+            <tr>
+                <td>hire_date</td>
+                <td>DATE</td>
+                <td>Original hire date</td>
+            </tr>
+            <tr>
+                <td>termination_date</td>
+                <td>DATE</td>
+                <td>Termination date if applicable</td>
+            </tr>
+            <tr>
+                <td>employee_status</td>
+                <td>TEXT</td>
+                <td>Status (Active, LOA, Terminated, Suspended, Retired)</td>
+            </tr>
+            <tr>
+                <td>employee_type</td>
+                <td>TEXT</td>
+                <td>Type (Full-Time, Part-Time, Contractor, Intern, Consultant)</td>
+            </tr>
+            <tr>
+                <td>current_position_id</td>
+                <td>INTEGER</td>
+                <td>Current position ID</td>
+            </tr>
+            <tr>
+                <td>current_department_id</td>
+                <td>INTEGER</td>
+                <td>Current department ID</td>
+            </tr>
+            <tr>
+                <td>current_location_id</td>
+                <td>INTEGER</td>
+                <td>Current location ID</td>
+            </tr>
+            <tr>
+                <td>manager_id</td>
+                <td>INTEGER</td>
+                <td>Employee ID of manager</td>
+            </tr>
+        </table>
+        
+        <h3>Sample Records</h3>
+        <table>
+            <tr class="sample-header">
+                <th>employee_id</th>
+                <th>employee_number</th>
+                <th>first_name</th>
+                <th>last_name</th>
+                <th>email</th>
+                <th>employee_status</th>
+                <th>hire_date</th>
+                <th>current_department_id</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>EMP000001</td>
+                <td>Michael</td>
+                <td>Johnson</td>
+                <td>michael.johnson@company.com</td>
+                <td>Active</td>
+                <td>2020-05-12</td>
+                <td>1</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>EMP000002</td>
+                <td>Jennifer</td>
+                <td>Smith</td>
+                <td>jennifer.smith@company.com</td>
+                <td>Active</td>
+                <td>2021-03-04</td>
+                <td>2</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="table-info">
+        <h2>6. employment_history</h2>
+        <div class="description">
+            <p>Tracks changes in employment status, positions, and departments for each employee over time.</p>
+            <p><strong>Primary Key:</strong> history_id</p>
+            <p><strong>Foreign Keys:</strong> employee_id, position_id, department_id, location_id, manager_id</p>
+        </div>
+        
+        <table>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>history_id</td>
+                <td>INTEGER</td>
+                <td>Unique identifier for history record</td>
+            </tr>
+            <tr>
+                <td>employee_id</td>
+                <td>INTEGER</td>
+                <td>Employee ID</td>
+            </tr>
+            <tr>
+                <td>position_id</td>
+                <td>INTEGER</td>
+                <td>Position ID</td>
+            </tr>
+            <tr>
+                <td>department_id</td>
+                <td>INTEGER</td>
+                <td>Department ID</td>
+            </tr>
+            <tr>
+                <td>location_id</td>
+                <td>INTEGER</td>
+                <td>Location ID</td>
+            </tr>
+            <tr>
+                <td>manager_id</td>
+                <td>INTEGER</td>
+                <td>Manager's employee ID</td>
+            </tr>
+            <tr>
+                <td>effective_start_date</td>
+                <td>DATE</td>
+                <td>When this status became effective</td>
+            </tr>
+            <tr>
+                <td>effective_end_date</td>
+                <td>DATE</td>
+                <td>When this status ended (blank if current)</td>
+            </tr>
+            <tr>
+                <td>employment_type</td>
+                <td>TEXT</td>
+                <td>Type of employment</td>
+            </tr>
+            <tr>
+                <td>change_reason</td>
+                <td>TEXT</td>
+                <td>Reason for change (Initial Hire, Promotion, Transfer, etc.)</td>
+            </tr>
+        </table>
+        
+        <h3>Sample Records</h3>
+        <table>
+            <tr class="sample-header">
+                <th>history_id</th>
+                <th>employee_id</th>
+                <th>position_id</th>
+                <th>department_id</th>
+                <th>effective_start_date</th>
+                <th>effective_end_date</th>
+                <th>employment_type</th>
+                <th>change_reason</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>1</td>
+                <td>5</td>
+                <td>1</td>
+                <td>2020-05-12</td>
+                <td></td>
+                <td>Full-Time</td>
+                <td>Initial Hire</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>2</td>
+                <td>12</td>
+                <td>2</td>
+                <td>2021-03-04</td>
+                <td>2023-01-15</td>
+                <td>Full-Time</td>
+                <td>Initial Hire</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="table-info">
+        <h2>7. pay_grades</h2>
+        <div class="description">
+            <p>Defines salary ranges and compensation guidelines for different levels within the organization.</p>
+            <p><strong>Primary Key:</strong> pay_grade_id</p>
+            <p><strong>Relations:</strong> Referenced by compensation.pay_grade_id</p>
+        </div>
+        
+        <table>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>pay_grade_id</td>
+                <td>INTEGER</td>
+                <td>Unique identifier for pay grade</td>
+            </tr>
+            <tr>
+                <td>pay_grade_code</td>
+                <td>TEXT</td>
+                <td>Business code for pay grade</td>
+            </tr>
+            <tr>
+                <td>pay_grade_name</td>
+                <td>TEXT</td>
+                <td>Name of pay grade</td>
+            </tr>
+            <tr>
+                <td>currency</td>
+                <td>TEXT</td>
+                <td>Currency code (USD, EUR, etc.)</td>
+            </tr>
+            <tr>
+                <td>min_annual_salary</td>
+                <td>FLOAT</td>
+                <td>Minimum annual salary</td>
+            </tr>
+            <tr>
+                <td>max_annual_salary</td>
+                <td>FLOAT</td>
+                <td>Maximum annual salary</td>
+            </tr>
+            <tr>
+                <td>midpoint_annual_salary</td>
+                <td>FLOAT</td>
+                <td>Midpoint annual salary</td>
+            </tr>
+            <tr>
+                <td>active_flag</td>
+                <td>BOOLEAN</td>
+                <td>Whether pay grade is active</td>
+            </tr>
+        </table>
+        
+        <h3>Sample Records</h3>
+        <table>
+            <tr class="sample-header">
+                <th>pay_grade_id</th>
+                <th>pay_grade_code</th>
+                <th>pay_grade_name</th>
+                <th>currency</th>
+                <th>min_annual_salary</th>
+                <th>max_annual_salary</th>
+                <th>midpoint_annual_salary</th>
+                <th>active_flag</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>PG-01</td>
+                <td>Grade 1</td>
+                <td>USD</td>
+                <td>38000</td>
+                <td>63000</td>
+                <td>50500</td>
+                <td>True</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>PG-02</td>
+                <td>Grade 2</td>
+                <td>USD</td>
+                <td>46000</td>
+                <td>71000</td>
+                <td>58500</td>
+                <td>True</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="table-info">
+        <h2>8. compensation</h2>
+        <div class="description">
+            <p>Contains salary and compensation information for employees, including historical compensation changes.</p>
+            <p><strong>Primary Key:</strong> compensation_id</p>
+            <p><strong>Foreign Keys:</strong> employee_id, pay_grade_id</p>
+        </div>
+        
+        <table>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>compensation_id</td>
+                <td>INTEGER</td>
+                <td>Unique identifier for compensation record</td>
+            </tr>
+            <tr>
+                <td>employee_id</td>
+                <td>INTEGER</td>
+                <td>Employee ID</td>
+            </tr>
+            <tr>
+                <td>pay_grade_id</td>
+                <td>INTEGER</td>
+                <td>Pay grade ID</td>
+            </tr>
+            <tr>
+                <td>effective_date</td>
+                <td>DATE</td>
+                <td>When compensation became effective</td>
+            </tr>
+            <tr>
+                <td>end_date</td>
+                <td>DATE</td>
+                <td>When compensation ended (blank if current)</td>
+            </tr>
+            <tr>
+                <td>base_salary</td>
+                <td>FLOAT</td>
+                <td>Annual base salary</td>
+            </tr>
+            <tr>
+                <td>hourly_rate</td>
+                <td>FLOAT</td>
+                <td>Hourly pay rate</td>
+            </tr>
+            <tr>
+                <td>overtime_eligible</td>
+                <td>BOOLEAN</td>
+                <td>Whether eligible for overtime pay</td>
+            </tr>
+            <tr>
+                <td>currency</td>
+                <td>TEXT</td>
+                <td>Currency code (USD, EUR, etc.)</td>
+            </tr>
+            <tr>
+                <td>pay_frequency</td>
+                <td>TEXT</td>
+                <td>Payment frequency (Bi-Weekly, Monthly)</td>
+            </tr>
+        </table>
+        
+        <h3>Sample Records</h3>
+        <table>
+            <tr class="sample-header">
+                <th>compensation_id</th>
+                <th>employee_id</th>
+                <th>pay_grade_id</th>
+                <th>effective_date</th>
+                <th>end_date</th>
+                <th>base_salary</th>
+                <th>hourly_rate</th>
+                <th>overtime_eligible</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>1</td>
+                <td>5</td>
+                <td>2020-05-12</td>
+                <td></td>
+                <td>78000</td>
+                <td>37.50</td>
+                <td>False</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>2</td>
+                <td>3</td>
+                <td>2021-03-04</td>
+                <td></td>
+                <td>62000</td>
+                <td>29.81</td>
+                <td>True</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="table-info">
+        <h2>9. benefits_enrollment</h2>
+        <div class="description">
+            <p>Tracks employee enrollment in various benefit plans including health insurance, retirement, and other benefits.</p>
+            <p><strong>Primary Key:</strong> enrollment_id</p>
+            <p><strong>Foreign Keys:</strong> employee_id, benefit_plan_id</p>
+        </div>
+        
+        <table>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>enrollment_id</td>
+                <td>INTEGER</td>
+                <td>Unique identifier for enrollment</td>
+            </tr>
+            <tr>
+                <td>employee_id</td>
+                <td>INTEGER</td>
+                <td>Employee ID</td>
+            </tr>
+            <tr>
+                <td>benefit_plan_id</td>
+                <td>INTEGER</td>
+                <td>Benefit plan ID</td>
+            </tr>
+            <tr>
+                <td>plan_name</td>
+                <td>TEXT</td>
+                <td>Name of benefit plan</td>
+            </tr>
+            <tr>
+                <td>plan_type</td>
+                <td>TEXT</td>
+                <td>Type of benefit (Medical, Dental, Vision, etc.)</td>
+            </tr>
+            <tr>
+                <td>enrollment_date</td>
+                <td>DATE</td>
+                <td>When employee enrolled</td>
+            </tr>
+            <tr>
+                <td>effective_date</td>
+                <td>DATE</td>
+                <td>When coverage begins</td>
+            </tr>
+            <tr>
+                <td>end_date</td>
+                <td>DATE</td>
+                <td>When coverage ends (blank if current)</td>
+            </tr>
+            <tr>
+                <td>coverage_level</td>
+                <td>TEXT</td>
+                <td>Level of coverage (Employee Only, Employee + Spouse, etc.)</td>
+            </tr>
+            <tr>
+                <td>employee_contribution</td>
+                <td>FLOAT</td>
+                <td>Employee's contribution amount</td>
+            </tr>
+            <tr>
+                <td>employer_contribution</td>
+                <td>FLOAT</td>
+                <td>Employer's contribution amount</td>
+            </tr>
+            <tr>
+                <td>status</td>
+                <td>TEXT</td>
+                <td>Status of enrollment (Active, Inactive)</td>
+            </tr>
+        </table>
+        
+        <h3>Sample Records</h3>
+        <table>
+            <tr class="sample-header">
+                <th>enrollment_id</th>
+                <th>employee_id</th>
+                <th>benefit_plan_id</th>
+                <th>plan_name</th>
+                <th>plan_type</th>
+                <th>enrollment_date</th>
+                <th>coverage_level</th>
+                <th>status</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>1</td>
+                <td>1</td>
+                <td>Health Insurance - Premium</td>
+                <td>Medical</td>
+                <td>2020-05-12</td>
+                <td>Employee + Spouse</td>
+                <td>Active</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>1</td>
+                <td>3</td>
+                <td>Dental Insurance</td>
+                <td>Dental</td>
+                <td>2020-05-12</td>
+                <td>Employee Only</td>
+                <td>Active</td>
+            </tr>
+        </table>
+    </div>
+    
+    <!-- PHASE 2: TIME & LEAVE MANAGEMENT -->
+    <div id="phase2" class="phase-title">PHASE 2: Time & Leave Management (6 Tables)</div>
+    
+    <div class="table-info">
+        <h2>10. time_entries</h2>
+        <div class="description">
+            <p>Records daily time entries for employees, including work hours, project time, and approval status.</p>
+            <p><strong>Primary Key:</strong> time_entry_id</p>
+            <p><strong>Foreign Keys:</strong> employee_id, location_id, approver_id</p>
+        </div>
+        
+        <table>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>time_entry_id</td>
+                <td>INTEGER</td>
+                <td>Unique identifier for time entry</td>
+            </tr>
+            <tr>
+                <td>employee_id</td>
+                <td>INTEGER</td>
+                <td>Employee ID</td>
+            </tr>
+            <tr>
+                <td>entry_date</td>
+                <td>DATE</td>
+                <td>Date of work</td>
+            </tr>
+            <tr>
+                <td>start_time</td>
+                <td>TIME</td>
+                <td>Start time of work</td>
+            </tr>
+            <tr>
+                <td>end_time</td>
+                <td>TIME</td>
+                <td>End time of work</td>
+            </tr>
+            <tr>
+                <td>break_time</td>
+                <td>TIME</td>
+                <td>Length of breaks</td>
+            </tr>
+            <tr>
+                <td>total_hours</td>
+                <td>FLOAT</td>
+                <td>Total hours worked</td>
+            </tr>
+            <tr>
+                <td>time_type</td>
+                <td>TEXT</td>
+                <td>Type of time (Regular, Overtime)</td>
+            </tr>
+            <tr>
+                <td>work_order_id</td>
+                <td>INTEGER</td>
+                <td>Work order reference (if applicable)</td>
+            </tr>
+            <tr>
+                <td>project_id</td>
+                <td>INTEGER</td>
+                <td>Project reference (if applicable)</td>
+            </tr>
+            <tr>
+                <td>approval_status</td>
+                <td>TEXT</td>
+                <td>Status (Approved, Pending, Rejected)</td>
+            </tr>
+            <tr>
+                <td>approver_id</td>
+                <td>INTEGER</td>
+                <td>Employee ID of approver</td>
+            </tr>
+        </table>
+        
+        <h3>Sample Records</h3>
+        <table>
+            <tr class="sample-header">
+                <th>time_entry_id</th>
+                <th>employee_id</th>
+                <th>entry_date</th>
+                <th>start_time</th>
+                <th>end_time</th>
+                <th>break_time</th>
+                <th>total_hours</th>
+                <th>approval_status</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>1</td>
+                <td>2025-10-01</td>
+                <td>09:00:00</td>
+                <td>17:30:00</td>
+                <td>01:00:00</td>
+                <td>7.5</td>
+                <td>Approved</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>1</td>
+                <td>2025-10-02</td>
+                <td>08:45:00</td>
+                <td>18:15:00</td>
+                <td>01:00:00</td>
+                <td>8.5</td>
+                <td>Approved</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="table-info">
+        <h2>11. leave_types</h2>
+        <div class="description">
+            <p>Defines various types of leave available to employees and their associated policies.</p>
+            <p><strong>Primary Key:</strong> leave_type_id</p>
+            <p><strong>Relations:</strong> Referenced by leave_balances.leave_type_id, leave_requests.leave_type_id</p>
+        </div>
+        
+        <table>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>leave_type_id</td>
+                <td>INTEGER</td>
+                <td>Unique identifier for leave type</td>
+            </tr>
+            <tr>
+                <td>leave_type_code</td>
+                <td>TEXT</td>
+                <td>Code for the leave type (PTO, SICK, FMLA, etc.)</td>
+            </tr>
+            <tr>
+                <td>leave_type_name</td>
+                <td>TEXT</td>
+                <td>Name of the leave type</td>
+            </tr>
+            <tr>
+                <td>description</td>
+                <td>TEXT</td>
+                <td>Description of the leave type</td>
+            </tr>
+            <tr>
+                <td>is_paid_flag</td>
+                <td>BOOLEAN</td>
+                <td>Whether leave is paid</td>
+            </tr>
+            <tr>
+                <td>statutory_type</td>
+                <td>TEXT</td>
+                <td>Legal category if applicable (FMLA, Military)</td>
+            </tr>
+            <tr>
+                <td>default_accrual_rule_id</td>
+                <td>INTEGER</td>
+                <td>Default accrual rule for this leave type</td>
+            </tr>
+            <tr>
+                <td>requires_approval_flag</td>
+                <td>BOOLEAN</td>
+                <td>Whether approval is required</td>
+            </tr>
+            <tr>
+                <td>requires_documentation_flag</td>
+                <td>BOOLEAN</td>
+                <td>Whether documentation is required</td>
+            </tr>
+            <tr>
+                <td>max_duration_days</td>
+                <td>INTEGER</td>
+                <td>Maximum days allowed</td>
+            </tr>
+        </table>
+        
+        <h3>Sample Records</h3>
+        <table>
+            <tr class="sample-header">
+                <th>leave_type_id</th>
+                <th>leave_type_code</th>
+                <th>leave_type_name</th>
+                <th>is_paid_flag</th>
+                <th>statutory_type</th>
+                <th>requires_approval_flag</th>
+                <th>max_duration_days</th>
+                <th>active_flag</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>PTO</td>
+                <td>Paid Time Off</td>
+                <td>True</td>
+                <td></td>
+                <td>True</td>
+                <td>30</td>
+                <td>True</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>SICK</td>
+                <td>Sick Leave</td>
+                <td>True</td>
+                <td></td>
+                <td>True</td>
+                <td>10</td>
+                <td>True</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="table-info">
+        <h2>12. leave_balances</h2>
+        <div class="description">
+            <p>Tracks accrued, used, and available leave hours for each employee by leave type.</p>
+            <p><strong>Primary Key:</strong> balance_id</p>
+            <p><strong>Foreign Keys:</strong> employee_id, leave_type_id</p>
+        </div>
+        
+        <table>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>balance_id</td>
+                <td>INTEGER</td>
+                <td>Unique identifier for balance record</td>
+            </tr>
+            <tr>
+                <td>employee_id</td>
+                <td>INTEGER</td>
+                <td>Employee ID</td>
+            </tr>
+            <tr>
+                <td>leave_type_id</td>
+                <td>INTEGER</td>
+                <td>Leave type ID</td>
+            </tr>
+            <tr>
+                <td>balance_year</td>
+                <td>INTEGER</td>
+                <td>Year for this balance</td>
+            </tr>
+            <tr>
+                <td>accrued_hours</td>
+                <td>FLOAT</td>
+                <td>Total hours accrued</td>
+            </tr>
+            <tr>
+                <td>used_hours</td>
+                <td>FLOAT</td>
+                <td>Hours already used</td>
+            </tr>
+            <tr>
+                <td>pending_hours</td>
+                <td>FLOAT</td>
+                <td>Hours pending approval</td>
+            </tr>
+            <tr>
+                <td>available_hours</td>
+                <td>FLOAT</td>
+                <td>Hours currently available</td>
+            </tr>
+            <tr>
+                <td>carried_forward_hours</td>
+                <td>FLOAT</td>
+                <td>Hours carried over from prior year</td>
+            </tr>
+            <tr>
+                <td>maximum_accrual_hours</td>
+                <td>FLOAT</td>
+                <td>Maximum hours that can be accrued</td>
+            </tr>
+            <tr>
+                <td>accrual_rate_per_period</td>
+                <td>FLOAT</td>
+                <td>Accrual rate per pay period</td>
+            </tr>
+        </table>
+        
+        <h3>Sample Records</h3>
+        <table>
+            <tr class="sample-header">
+                <th>balance_id</th>
+                <th>employee_id</th>
+                <th>leave_type_id</th>
+                <th>balance_year</th>
+                <th>accrued_hours</th>
+                <th>used_hours</th>
+                <th>available_hours</th>
+                <th>accrual_rate_per_period</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>1</td>
+                <td>1</td>
+                <td>2025</td>
+                <td>120</td>
+                <td>32</td>
+                <td>80</td>
+                <td>4.62</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>1</td>
+                <td>2</td>
+                <td>2025</td>
+                <td>80</td>
+                <td>16</td>
+                <td>64</td>
+                <td>3.08</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="table-info">
+        <h2>13. leave_requests</h2>
+        <div class="description">
+            <p>Contains employee leave requests including dates, status, and approvals.</p>
+            <p><strong>Primary Key:</strong> leave_request_id</p>
+            <p><strong>Foreign Keys:</strong> employee_id, leave_type_id, approver_id</p>
+        </div>
+        
+        <table>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>leave_request_id</td>
+                <td>INTEGER</td>
+                <td>Unique identifier for leave request</td>
+            </tr>
+            <tr>
+                <td>employee_id</td>
+                <td>INTEGER</td>
+                <td>Employee ID</td>
+            </tr>
+            <tr>
+                <td>leave_type_id</td>
+                <td>INTEGER</td>
+                <td>Leave type ID</td>
+            </tr>
+            <tr>
+                <td>start_date</td>
+                <td>DATE</td>
+                <td>Start date of leave</td>
+            </tr>
+            <tr>
+                <td>end_date</td>
+                <td>DATE</td>
+                <td>End date of leave</td>
+            </tr>
+            <tr>
+                <td>total_days</td>
+                <td>INTEGER</td>
+                <td>Total days of leave</td>
+            </tr>
+            <tr>
+                <td>total_hours</td>
+                <td>FLOAT</td>
+                <td>Total hours of leave</td>
+            </tr>
+            <tr>
+                <td>reason</td>
+                <td>TEXT</td>
+                <td>Reason for leave</td>
+            </tr>
+            <tr>
+                <td>status</td>
+                <td>TEXT</td>
+                <td>Status (Pending, Approved, Rejected, Cancelled)</td>
+            </tr>
+            <tr>
+                <td>submitted_date</td>
+                <td>DATE</td>
+                <td>Date request was submitted</td>
+            </tr>
+            <tr>
+                <td>approved_date</td>
+                <td>DATE</td>
+                <td>Date request was approved (if applicable)</td>
+            </tr>
+            <tr>
+                <td>approver_id</td>
+                <td>INTEGER</td>
+                <td>Employee ID of approver</td>
+            </tr>
+        </table>
+        
+        <h3>Sample Records</h3>
+        <table>
+            <tr class="sample-header">
+                <th>leave_request_id</th>
+                <th>employee_id</th>
+                <th>leave_type_id</th>
+                <th>start_date</th>
+                <th>end_date</th>
+                <th>total_days</th>
+                <th>status</th>
+                <th>submitted_date</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>1</td>
+                <td>1</td>
+                <td>2025-12-22</td>
+                <td>2025-12-26</td>
+                <td>5</td>
+                <td>Approved</td>
+                <td>2025-11-15</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>2</td>
+                <td>2</td>
+                <td>2025-10-18</td>
+                <td>2025-10-19</td>
+                <td>2</td>
+                <td>Approved</td>
+                <td>2025-10-17</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="table-info">
+        <h2>14. leave_status_history</h2>
+        <div class="description">
+            <p>Tracks the history of status changes for leave requests, including who made the change and when.</p>
+            <p><strong>Primary Key:</strong> history_id</p>
+            <p><strong>Foreign Keys:</strong> leave_request_id, changed_by</p>
+        </div>
+        
+        <table>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>history_id</td>
+                <td>INTEGER</td>
+                <td>Unique identifier for history record</td>
+            </tr>
+            <tr>
+                <td>leave_request_id</td>
+                <td>INTEGER</td>
+                <td>Leave request ID</td>
+            </tr>
+            <tr>
+                <td>status</td>
+                <td>TEXT</td>
+                <td>Status at this point (Submitted, Approved, etc.)</td>
+            </tr>
+            <tr>
+                <td>status_date</td>
+                <td>DATE</td>
+                <td>Date of status change</td>
+            </tr>
+            <tr>
+                <td>changed_by</td>
+                <td>INTEGER</td>
+                <td>Employee ID of person who changed status</td>
+            </tr>
+            <tr>
+                <td>comments</td>
+                <td>TEXT</td>
+                <td>Comments about status change</td>
+            </tr>
+            <tr>
+                <td>created_date</td>
+                <td>DATE</td>
+                <td>Creation date of record</td>
+            </tr>
+        </table>
+        
+        <h3>Sample Records</h3>
+        <table>
+            <tr class="sample-header">
+                <th>history_id</th>
+                <th>leave_request_id</th>
+                <th>status</th>
+                <th>status_date</th>
+                <th>changed_by</th>
+                <th>comments</th>
+                <th>created_date</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>1</td>
+                <td>Submitted</td>
+                <td>2025-11-15</td>
+                <td>1</td>
+                <td>Leave request submitted</td>
+                <td>2025-11-15</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>1</td>
+                <td>Approved</td>
+                <td>2025-11-18</td>
+                <td>12</td>
+                <td>Leave request approved</td>
+                <td>2025-11-18</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="table-info">
+        <h2>15. work_schedules</h2>
+        <div class="description">
+            <p>Defines employee work schedules including days, start times, and end times.</p>
+            <p><strong>Primary Key:</strong> schedule_id</p>
+            <p><strong>Foreign Keys:</strong> employee_id</p>
+        </div>
+        
+        <table>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>schedule_id</td>
+                <td>INTEGER</td>
+                <td>Unique identifier for schedule</td>
+            </tr>
+            <tr>
+                <td>employee_id</td>
+                <td>INTEGER</td>
+                <td>Employee ID</td>
+            </tr>
+            <tr>
+                <td>effective_start_date</td>
+                <td>DATE</td>
+                <td>When schedule becomes effective</td>
+            </tr>
+            <tr>
+                <td>effective_end_date</td>
+                <td>DATE</td>
+                <td>When schedule ends (blank if current)</td>
+            </tr>
+            <tr>
+                <td>schedule_name</td>
+                <td>TEXT</td>
+                <td>Name of schedule</td>
+            </tr>
+            <tr>
+                <td>monday_start</td>
+                <td>TIME</td>
+                <td>Monday start time</td>
+            </tr>
+            <tr>
+                <td>monday_end</td>
+                <td>TIME</td>
+                <td>Monday end time</td>
+            </tr>
+            <tr>
+                <td>tuesday_start</td>
+                <td>TIME</td>
+                <td>Tuesday start time</td>
+            </tr>
+            <tr>
+                <td>tuesday_end</td>
+                <td>TIME</td>
+                <td>Tuesday end time</td>
+            </tr>
+            <tr>
+                <td>wednesday_start</td>
+                <td>TIME</td>
+                <td>Wednesday start time</td>
+            </tr>
+            <tr>
+                <td>wednesday_end</td>
+                <td>TIME</td>
+                <td>Wednesday end time</td>
+            </tr>
+            <tr>
+                <td>thursday_start</td>
+                <td>TIME</td>
+                <td>Thursday start time</td>
+            </tr>
+            <tr>
+                <td>thursday_end</td>
+                <td>TIME</td>
+                <td>Thursday end time</td>
+            </tr>
+            <tr>
+                <td>friday_start</td>
+                <td>TIME</td>
+                <td>Friday start time</td>
+            </tr>
+            <tr>
+                <td>friday_end</td>
+                <td>TIME</td>
+                <td>Friday end time</td>
+            </tr>
+            <tr>
+                <td>total_weekly_hours</td>
+                <td>FLOAT</td>
+                <td>Total hours per week</td>
+            </tr>
+        </table>
+        
+        <h3>Sample Records</h3>
+        <table>
+            <tr class="sample-header">
+                <th>schedule_id</th>
+                <th>employee_id</th>
+                <th>schedule_name</th>
+                <th>effective_start_date</th>
+                <th>monday_start</th>
+                <th>monday_end</th>
+                <th>friday_end</th>
+                <th>total_weekly_hours</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>1</td>
+                <td>Standard Business Hours</td>
+                <td>2020-05-12</td>
+                <td>09:00:00</td>
+                <td>17:00:00</td>
+                <td>17:00:00</td>
+                <td>40.0</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>2</td>
+                <td>Flexible Hours</td>
+                <td>2021-03-04</td>
+                <td>08:00:00</td>
+                <td>16:00:00</td>
+                <td>16:00:00</td>
+                <td>40.0</td>
+            </tr>
+        </table>
+    </div>
+    
+    <!-- PHASE 3: TRAINING MANAGEMENT -->
+    <div id="phase3" class="phase-title">PHASE 3: Training Management (4 Tables)</div>
+    
+    <div class="table-info">
+        <h2>16. training_courses</h2>
+        <div class="description">
+            <p>Catalog of available training courses, their details, and requirements.</p>
+            <p><strong>Primary Key:</strong> course_id</p>
+            <p><strong>Relations:</strong> Referenced by training_assignments.course_id</p>
+        </div>
+        
+        <table>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>course_id</td>
+                <td>INTEGER</td>
+                <td>Unique identifier for course</td>
+            </tr>
+            <tr>
+                <td>course_code</td>
+                <td>TEXT</td>
+                <td>Business code for course</td>
+            </tr>
+            <tr>
+                <td>course_title</td>
+                <td>TEXT</td>
+                <td>Title of the course</td>
+            </tr>
+            <tr>
+                <td>description</td>
+                <td>TEXT</td>
+                <td>Course description</td>
+            </tr>
+            <tr>
+                <td>course_type</td>
+                <td>TEXT</td>
+                <td>Type (Technical, Leadership, Compliance, etc.)</td>
+            </tr>
+            <tr>
+                <td>duration_hours</td>
+                <td>INTEGER</td>
+                <td>Expected duration in hours</td>
+            </tr>
+            <tr>
+                <td>credit_hours</td>
+                <td>INTEGER</td>
+                <td>Credit hours awarded</td>
+            </tr>
+            <tr>
+                <td>delivery_method</td>
+                <td>TEXT</td>
+                <td>Method (Online, Classroom, Blended, etc.)</td>
+            </tr>
+            <tr>
+                <td>provider_id</td>
+                <td>TEXT</td>
+                <td>Training provider ID</td>
+            </tr>
+            <tr>
+                <td>cost_per_attendee</td>
+                <td>FLOAT</td>
+                <td>Cost per attendee</td>
+            </tr>
+            <tr>
+                <td>prerequisites</td>
+                <td>TEXT</td>
+                <td>Prerequisites for taking course</td>
+            </tr>
+            <tr>
+                <td>compliance_relevant_flag</td>
+                <td>BOOLEAN</td>
+                <td>Whether required for compliance</td>
+            </tr>
+        </table>
+        
+        <h3>Sample Records</h3>
+        <table>
+            <tr class="sample-header">
+                <th>course_id</th>
+                <th>course_code</th>
+                <th>course_title</th>
+                <th>course_type</th>
+                <th>duration_hours</th>
+                <th>delivery_method</th>
+                <th>compliance_relevant_flag</th>
+                <th>cost_per_attendee</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>TRN-0001</td>
+                <td>Training Course 1: Essential Leadership Skills</td>
+                <td>Leadership</td>
+                <td>16</td>
+                <td>Classroom</td>
+                <td>False</td>
+                <td>850</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>TRN-0002</td>
+                <td>Training Course 2: Workplace Safety</td>
+                <td>Compliance</td>
+                <td>8</td>
+                <td>Online</td>
+                <td>True</td>
+                <td>275</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="table-info">
+        <h2>17. training_assignments</h2>
+        <div class="description">
+            <p>Maps employees to assigned training courses with assignment details.</p>
+            <p><strong>Primary Key:</strong> assignment_id</p>
+            <p><strong>Foreign Keys:</strong> employee_id, course_id, assigned_by</p>
+        </div>
+        
+        <table>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>assignment_id</td>
+                <td>INTEGER</td>
+                <td>Unique identifier for assignment</td>
+            </tr>
+            <tr>
+                <td>employee_id</td>
+                <td>INTEGER</td>
+                <td>Employee ID</td>
+            </tr>
+            <tr>
+                <td>course_id</td>
+                <td>INTEGER</td>
+                <td>Course ID</td>
+            </tr>
+            <tr>
+                <td>required_flag</td>
+                <td>BOOLEAN</td>
+                <td>Whether training is required</td>
+            </tr>
+            <tr>
+                <td>assignment_reason</td>
+                <td>TEXT</td>
+                <td>Reason for assignment</td>
+            </tr>
+            <tr>
+                <td>assignment_date</td>
+                <td>DATE</td>
+                <td>Date of assignment</td>
+            </tr>
+            <tr>
+                <td>assigned_by</td>
+                <td>INTEGER</td>
+                <td>Employee ID who assigned</td>
+            </tr>
+            <tr>
+                <td>due_date</td>
+                <td>DATE</td>
+                <td>Due date for completion</td>
+            </tr>
+            <tr>
+                <td>priority</td>
+                <td>TEXT</td>
+                <td>Priority level (High, Medium, Low)</td>
+            </tr>
+            <tr>
+                <td>recurring_flag</td>
+                <td>BOOLEAN</td>
+                <td>Whether assignment recurs</td>
+            </tr>
+            <tr>
+                <td>recurring_frequency</td>
+                <td>TEXT</td>
+                <td>Frequency if recurring (Annual, Semi-Annual)</td>
+            </tr>
+        </table>
+        
+        <h3>Sample Records</h3>
+        <table>
+            <tr class="sample-header">
+                <th>assignment_id</th>
+                <th>employee_id</th>
+                <th>course_id</th>
+                <th>required_flag</th>
+                <th>assignment_reason</th>
+                <th>assignment_date</th>
+                <th>due_date</th>
+                <th>priority</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>1</td>
+                <td>2</td>
+                <td>True</td>
+                <td>Compliance Required</td>
+                <td>2025-09-01</td>
+                <td>2025-10-15</td>
+                <td>High</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>2</td>
+                <td>1</td>
+                <td>False</td>
+                <td>Career Development</td>
+                <td>2025-09-10</td>
+                <td>2025-11-30</td>
+                <td>Medium</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="table-info">
+        <h2>18. training_status</h2>
+        <div class="description">
+            <p>Tracks the current status of each training assignment including progress and completion.</p>
+            <p><strong>Primary Key:</strong> status_id</p>
+            <p><strong>Foreign Keys:</strong> assignment_id</p>
+        </div>
+        
+        <table>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>status_id</td>
+                <td>INTEGER</td>
+                <td>Unique identifier for status record</td>
+            </tr>
+            <tr>
+                <td>assignment_id</td>
+                <td>INTEGER</td>
+                <td>Training assignment ID</td>
+            </tr>
+            <tr>
+                <td>status</td>
+                <td>TEXT</td>
+                <td>Current status (Not Started, In Progress, Completed, etc.)</td>
+            </tr>
+            <tr>
+                <td>effective_date</td>
+                <td>DATE</td>
+                <td>Date status became effective</td>
+            </tr>
+            <tr>
+                <td>progress_percentage</td>
+                <td>INTEGER</td>
+                <td>Percentage complete (0-100)</td>
+            </tr>
+            <tr>
+                <td>completion_date</td>
+                <td>DATE</td>
+                <td>Date of completion if completed</td>
+            </tr>
+            <tr>
+                <td>expiration_date</td>
+                <td>DATE</td>
+                <td>Date certification expires if applicable</td>
+            </tr>
+            <tr>
+                <td>assessment_score</td>
+                <td>INTEGER</td>
+                <td>Final assessment score</td>
+            </tr>
+            <tr>
+                <td>attempts</td>
+                <td>INTEGER</td>
+                <td>Number of attempts</td>
+            </tr>
+            <tr>
+                <td>last_attempt_date</td>
+                <td>DATE</td>
+                <td>Date of last attempt</td>
+            </tr>
+            <tr>
+                <td>time_spent_minutes</td>
+                <td>INTEGER</td>
+                <td>Total time spent in minutes</td>
+            </tr>
+        </table>
+        
+        <h3>Sample Records</h3>
+        <table>
+            <tr class="sample-header">
+                <th>status_id</th>
+                <th>assignment_id</th>
+                <th>status</th>
+                <th>progress_percentage</th>
+                <th>completion_date</th>
+                <th>assessment_score</th>
+                <th>attempts</th>
+                <th>time_spent_minutes</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>1</td>
+                <td>Completed</td>
+                <td>100</td>
+                <td>2025-09-30</td>
+                <td>92</td>
+                <td>1</td>
+                <td>420</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>2</td>
+                <td>In Progress</td>
+                <td>45</td>
+                <td></td>
+                <td></td>
+                <td>1</td>
+                <td>210</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="table-info">
+        <h2>19. training_status_history</h2>
+        <div class="description">
+            <p>Records all changes to training status over time.</p>
+            <p><strong>Primary Key:</strong> history_id</p>
+            <p><strong>Foreign Keys:</strong> status_id, changed_by</p>
+        </div>
+        
+        <table>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>history_id</td>
+                <td>INTEGER</td>
+                <td>Unique identifier for history record</td>
+            </tr>
+            <tr>
+                <td>status_id</td>
+                <td>INTEGER</td>
+                <td>Training status ID</td>
+            </tr>
+            <tr>
+                <td>status</td>
+                <td>TEXT</td>
+                <td>Status at this point (Not Started, In Progress, etc.)</td>
+            </tr>
+            <tr>
+                <td>effective_date</td>
+                <td>DATE</td>
+                <td>When status change became effective</td>
+            </tr>
+            <tr>
+                <td>changed_by</td>
+                <td>INTEGER</td>
+                <td>Employee ID who made change</td>
+            </tr>
+            <tr>
+                <td>reason</td>
+                <td>TEXT</td>
+                <td>Reason for status change</td>
+            </tr>
+            <tr>
+                <td>comments</td>
+                <td>TEXT</td>
+                <td>Comments about change</td>
+            </tr>
+            <tr>
+                <td>created_date</td>
+                <td>DATE</td>
+                <td>Creation date of record</td>
+            </tr>
+        </table>
+        
+        <h3>Sample Records</h3>
+        <table>
+            <tr class="sample-header">
+                <th>history_id</th>
+                <th>status_id</th>
+                <th>status</th>
+                <th>effective_date</th>
+                <th>changed_by</th>
+                <th>reason</th>
+                <th>comments</th>
+                <th>created_date</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>1</td>
+                <td>Not Started</td>
+                <td>2025-09-01</td>
+                <td>1</td>
+                <td>Initial Assignment</td>
+                <td>Training assigned to employee</td>
+                <td>2025-09-01</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>1</td>
+                <td>Completed</td>
+                <td>2025-09-30</td>
+                <td>1</td>
+                <td>Status Update</td>
+                <td>Successfully completed all modules</td>
+                <td>2025-09-30</td>
+            </tr>
+        </table>
+    </div>
+    
+    <!-- PHASE 4: TRAVEL MANAGEMENT -->
+    <div id="phase4" class="phase-title">PHASE 4: Travel Management (4 Tables)</div>
+    
+    <div class="table-info">
+        <h2>20. travel_policies</h2>
+        <div class="description">
+            <p>Defines company travel policies including expense limits and approval thresholds.</p>
+            <p><strong>Primary Key:</strong> policy_id</p>
+            <p><strong>Relations:</strong> Referenced by travel_requests.policy_id</p>
+        </div>
+        
+        <table>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>policy_id</td>
+                <td>INTEGER</td>
+                <td>Unique identifier for policy</td>
+            </tr>
+            <tr>
+                <td>policy_code</td>
+                <td>TEXT</td>
+                <td>Business code for policy</td>
+            </tr>
+            <tr>
+                <td>policy_name</td>
+                <td>TEXT</td>
+                <td>Name of the policy</td>
+            </tr>
+            <tr>
+                <td>policy_type</td>
+                <td>TEXT</td>
+                <td>Type of policy (Domestic Travel, International Travel, etc.)</td>
+            </tr>
+            <tr>
+                <td>description</td>
+                <td>TEXT</td>
+                <td>Policy description</td>
+            </tr>
+            <tr>
+                <td>effective_date</td>
+                <td>DATE</td>
+                <td>When policy becomes effective</td>
+            </tr>
+            <tr>
+                <td>expiration_date</td>
+                <td>DATE</td>
+                <td>When policy expires (if applicable)</td>
+            </tr>
+            <tr>
+                <td>max_flight_cost</td>
+                <td>FLOAT</td>
+                <td>Maximum allowable flight cost</td>
+            </tr>
+            <tr>
+                <td>max_hotel_rate</td>
+                <td>FLOAT</td>
+                <td>Maximum allowable hotel rate per night</td>
+            </tr>
+            <tr>
+                <td>max_meal_per_diem</td>
+                <td>FLOAT</td>
+                <td>Maximum meal per diem amount</td>
+            </tr>
+            <tr>
+                <td>approval_threshold</td>
+                <td>FLOAT</td>
+                <td>Threshold amount requiring approval</td>
+            </tr>
+            <tr>
+                <td>auto_approval_limit</td>
+                <td>FLOAT</td>
+                <td>Limit for automatic approval</td>
+            </tr>
+        </table>
+        
+        <h3>Sample Records</h3>
+        <table>
+            <tr class="sample-header">
+                <th>policy_id</th>
+                <th>policy_code</th>
+                <th>policy_name</th>
+                <th>policy_type</th>
+                <th>max_flight_cost</th>
+                <th>max_hotel_rate</th>
+                <th>max_meal_per_diem</th>
+                <th>approval_threshold</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>TP-001</td>
+                <td>Domestic Business Travel Policy</td>
+                <td>Domestic Travel</td>
+                <td>800</td>
+                <td>250</td>
+                <td>75</td>
+                <td>1000</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>TP-002</td>
+                <td>International Business Travel Policy</td>
+                <td>International Travel</td>
+                <td>2500</td>
+                <td>400</td>
+                <td>125</td>
+                <td>3000</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="table-info">
+        <h2>21. travel_requests</h2>
+        <div class="description">
+            <p>Employee requests for business travel with estimated costs and approval status.</p>
+            <p><strong>Primary Key:</strong> travel_request_id</p>
+            <p><strong>Foreign Keys:</strong> employee_id, policy_id, approver_id</p>
+        </div>
+        
+        <table>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>travel_request_id</td>
+                <td>INTEGER</td>
+                <td>Unique identifier for travel request</td>
+            </tr>
+            <tr>
+                <td>employee_id</td>
+                <td>INTEGER</td>
+                <td>Employee ID</td>
+            </tr>
+            <tr>
+                <td>request_date</td>
+                <td>DATE</td>
+                <td>Date request was submitted</td>
+            </tr>
+            <tr>
+                <td>travel_purpose</td>
+                <td>TEXT</td>
+                <td>Purpose of travel</td>
+            </tr>
+            <tr>
+                <td>business_justification</td>
+                <td>TEXT</td>
+                <td>Business justification for travel</td>
+            </tr>
+            <tr>
+                <td>departure_date</td>
+                <td>DATE</td>
+                <td>Date of departure</td>
+            </tr>
+            <tr>
+                <td>return_date</td>
+                <td>DATE</td>
+                <td>Date of return</td>
+            </tr>
+            <tr>
+                <td>origin_city</td>
+                <td>TEXT</td>
+                <td>City of origin</td>
+            </tr>
+            <tr>
+                <td>origin_state</td>
+                <td>TEXT</td>
+                <td>State of origin</td>
+            </tr>
+            <tr>
+                <td>destination_city</td>
+                <td>TEXT</td>
+                <td>Destination city</td>
+            </tr>
+            <tr>
+                <td>destination_state</td>
+                <td>TEXT</td>
+                <td>Destination state</td>
+            </tr>
+            <tr>
+                <td>estimated_flight_cost</td>
+                <td>FLOAT</td>
+                <td>Estimated flight cost</td>
+            </tr>
+            <tr>
+                <td>estimated_hotel_cost</td>
+                <td>FLOAT</td>
+                <td>Estimated hotel cost</td>
+            </tr>
+            <tr>
+                <td>estimated_meal_cost</td>
+                <td>FLOAT</td>
+                <td>Estimated meal cost</td>
+            </tr>
+            <tr>
+                <td>total_estimated_cost</td>
+                <td>FLOAT</td>
+                <td>Total estimated cost</td>
+            </tr>
+            <tr>
+                <td>policy_id</td>
+                <td>INTEGER</td>
+                <td>Travel policy ID</td>
+            </tr>
+            <tr>
+                <td>status</td>
+                <td>TEXT</td>
+                <td>Status (Draft, Submitted, Approved, etc.)</td>
+            </tr>
+            <tr>
+                <td>approver_id</td>
+                <td>INTEGER</td>
+                <td>Employee ID of approver</td>
+            </tr>
+        </table>
+        
+        <h3>Sample Records</h3>
+        <table>
+            <tr class="sample-header">
+                <th>travel_request_id</th>
+                <th>employee_id</th>
+                <th>travel_purpose</th>
+                <th>departure_date</th>
+                <th>return_date</th>
+                <th>destination_city</th>
+                <th>total_estimated_cost</th>
+                <th>status</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>1</td>
+                <td>Business Meeting</td>
+                <td>2025-09-20</td>
+                <td>2025-09-22</td>
+                <td>Denver</td>
+                <td>1175</td>
+                <td>Approved</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>2</td>
+                <td>Conference</td>
+                <td>2025-10-15</td>
+                <td>2025-10-18</td>
+                <td>Las Vegas</td>
+                <td>1600</td>
+                <td>Pending</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="table-info">
+        <h2>22. travel_bookings</h2>
+        <div class="description">
+            <p>Records of flight and accommodation bookings for approved travel requests.</p>
+            <p><strong>Primary Key:</strong> booking_id</p>
+            <p><strong>Foreign Keys:</strong> travel_request_id, booked_by</p>
+        </div>
+        
+        <table>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>booking_id</td>
+                <td>INTEGER</td>
+                <td>Unique identifier for booking</td>
+            </tr>
+            <tr>
+                <td>travel_request_id</td>
+                <td>INTEGER</td>
+                <td>Travel request ID</td>
+            </tr>
+            <tr>
+                <td>booking_type</td>
+                <td>TEXT</td>
+                <td>Type of booking (Flight, Hotel)</td>
+            </tr>
+            <tr>
+                <td>vendor_name</td>
+                <td>TEXT</td>
+                <td>Name of vendor</td>
+            </tr>
+            <tr>
+                <td>booking_reference</td>
+                <td>TEXT</td>
+                <td>Booking reference number</td>
+            </tr>
+            <tr>
+                <td>booking_date</td>
+                <td>DATE</td>
+                <td>Date booking was made</td>
+            </tr>
+            <tr>
+                <td>service_date</td>
+                <td>DATE</td>
+                <td>Date service begins</td>
+            </tr>
+            <tr>
+                <td>service_end_date</td>
+                <td>DATE</td>
+                <td>Date service ends</td>
+            </tr>
+            <tr>
+                <td>cost</td>
+                <td>FLOAT</td>
+                <td>Total cost</td>
+            </tr>
+            <tr>
+                <td>currency</td>
+                <td>TEXT</td>
+                <td>Currency code</td>
+            </tr>
+            <tr>
+                <td>booking_status</td>
+                <td>TEXT</td>
+                <td>Status (Pending, Confirmed, Cancelled, etc.)</td>
+            </tr>
+            <tr>
+                <td>confirmation_number</td>
+                <td>TEXT</td>
+                <td>Confirmation number</td>
+            </tr>
+            <tr>
+                <td>booked_by</td>
+                <td>INTEGER</td>
+                <td>Employee ID of booker</td>
+            </tr>
+        </table>
+        
+        <h3>Sample Records</h3>
+        <table>
+            <tr class="sample-header">
+                <th>booking_id</th>
+                <th>travel_request_id</th>
+                <th>booking_type</th>
+                <th>vendor_name</th>
+                <th>booking_reference</th>
+                <th>service_date</th>
+                <th>cost</th>
+                <th>booking_status</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>1</td>
+                <td>Flight</td>
+                <td>Southwest</td>
+                <td>FL123456</td>
+                <td>2025-09-20</td>
+                <td>435.60</td>
+                <td>Confirmed</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>1</td>
+                <td>Hotel</td>
+                <td>Marriott</td>
+                <td>HT654321</td>
+                <td>2025-09-20</td>
+                <td>490.00</td>
+                <td>Confirmed</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="table-info">
+        <h2>23. travel_expenses</h2>
+        <div class="description">
+            <p>Detailed expense records for completed business trips with reimbursement status.</p>
+            <p><strong>Primary Key:</strong> expense_id</p>
+            <p><strong>Foreign Keys:</strong> travel_request_id, booking_id, employee_id, approver_id</p>
+        </div>
+        
+        <table>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>expense_id</td>
+                <td>INTEGER</td>
+                <td>Unique identifier for expense</td>
+            </tr>
+            <tr>
+                <td>travel_request_id</td>
+                <td>INTEGER</td>
+                <td>Travel request ID</td>
+            </tr>
+            <tr>
+                <td>booking_id</td>
+                <td>INTEGER</td>
+                <td>Booking ID if applicable</td>
+            </tr>
+            <tr>
+                <td>employee_id</td>
+                <td>INTEGER</td>
+                <td>Employee ID</td>
+            </tr>
+            <tr>
+                <td>expense_date</td>
+                <td>DATE</td>
+                <td>Date expense was incurred</td>
+            </tr>
+            <tr>
+                <td>expense_category</td>
+                <td>TEXT</td>
+                <td>Category (Airfare, Hotel, Meals, etc.)</td>
+            </tr>
+            <tr>
+                <td>description</td>
+                <td>TEXT</td>
+                <td>Description of expense</td>
+            </tr>
+            <tr>
+                <td>vendor_name</td>
+                <td>TEXT</td>
+                <td>Vendor name</td>
+            </tr>
+            <tr>
+                <td>amount</td>
+                <td>FLOAT</td>
+                <td>Expense amount</td>
+            </tr>
+            <tr>
+                <td>currency</td>
+                <td>TEXT</td>
+                <td>Currency code</td>
+            </tr>
+            <tr>
+                <td>receipt_required</td>
+                <td>BOOLEAN</td>
+                <td>Whether receipt is required</td>
+            </tr>
+            <tr>
+                <td>receipt_submitted</td>
+                <td>BOOLEAN</td>
+                <td>Whether receipt was submitted</td>
+            </tr>
+            <tr>
+                <td>expense_status</td>
+                <td>TEXT</td>
+                <td>Status (Draft, Submitted, Approved, etc.)</td>
+            </tr>
+            <tr>
+                <td>approver_id</td>
+                <td>INTEGER</td>
+                <td>Employee ID of approver</td>
+            </tr>
+        </table>
+        
+        <h3>Sample Records</h3>
+        <table>
+            <tr class="sample-header">
+                <th>expense_id</th>
+                <th>travel_request_id</th>
+                <th>booking_id</th>
+                <th>employee_id</th>
+                <th>expense_category</th>
+                <th>amount</th>
+                <th>receipt_submitted</th>
+                <th>expense_status</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>1</td>
+                <td>1</td>
+                <td>1</td>
+                <td>Airfare</td>
+                <td>435.60</td>
+                <td>True</td>
+                <td>Approved</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>1</td>
+                <td>2</td>
+                <td>1</td>
+                <td>Hotel</td>
+                <td>490.00</td>
+                <td>True</td>
+                <td>Approved</td>
+            </tr>
+        </table>
+    </div>
+    
+    <footer>
+        <p>Enterprise HR Database Catalogue - Generated on October 15, 2025</p>
+        <p>Complete 23-Table HR Ecosystem Documentation</p>
+    </footer>
+</body>
+</html>

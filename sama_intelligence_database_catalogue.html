@@ -1,0 +1,1956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAMA Intelligence Database Catalogue</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        h1 {
+            color: #1a472a;
+            border-bottom: 3px solid #27ae60;
+            padding-bottom: 10px;
+            text-align: center;
+        }
+        h2 {
+            color: #2c3e50;
+            margin-top: 40px;
+            border-left: 4px solid #27ae60;
+            padding-left: 10px;
+        }
+        .intelligence-title {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 15px;
+            margin-top: 50px;
+            border-radius: 8px;
+            font-size: 1.4em;
+            text-align: center;
+            border-bottom: 3px solid #27ae60;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .table-info {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border: 1px solid #e0e0e0;
+        }
+        .description {
+            background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%);
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 4px solid #27ae60;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+            text-align: left;
+            padding: 12px;
+            font-weight: 600;
+        }
+        td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            vertical-align: top;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        tr:hover {
+            background-color: #e8f5e8;
+        }
+        .sample-header {
+            background: linear-gradient(135deg, #1a472a 0%, #27ae60 100%);
+            color: white;
+        }
+        .navigation {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            padding: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        .navigation a {
+            color: white;
+            text-decoration: none;
+            margin-right: 20px;
+            font-weight: 500;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        .navigation a:hover {
+            background-color: #27ae60;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin-bottom: 40px;
+        }
+        .stat-box {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 15px;
+            flex: 1;
+            min-width: 180px;
+            margin: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .stat-box h3 {
+            margin: 0;
+            font-size: 2.2em;
+            font-weight: bold;
+        }
+        .stat-box p {
+            margin: 8px 0 0;
+            font-size: 1.1em;
+        }
+        footer {
+            margin-top: 60px;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 0.9em;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+        }
+        .intelligence-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .elint { background-color: #3498db; color: white; }
+        .imint { background-color: #e74c3c; color: white; }
+        .tacint { background-color: #f39c12; color: white; }
+        .fusion { background-color: #9b59b6; color: white; }
+        .sitrep { background-color: #1abc9c; color: white; }
+    </style>
+</head>
+<body>
+    <h1>🛡️ SAMA Intelligence Database Catalogue</h1>
+    <p style="text-align: center; font-size: 1.1em; color: #2c3e50; margin-bottom: 30px;">
+        <strong>Synthetic Army Military Analytics (SAMA)</strong><br>
+        Kargil War 1999 Intelligence Dataset - Multi-Source Intelligence Fusion
+    </p>
+    
+    <div class="navigation">
+        <a href="#elint">🔵 ELINT</a>
+        <a href="#imint">🔴 IMINT</a>
+        <a href="#tacint">🟡 TACINT</a>
+        <a href="#fusion">🟣 FUSION</a>
+        <a href="#sitrep">🟢 SITREP</a>
+        <a href="#datasources">📊 DATA SOURCES</a>
+    </div>
+    
+    <div class="stats">
+        <div class="stat-box">
+            <h3>5</h3>
+            <p>Intelligence Databases</p>
+        </div>
+        <div class="stat-box">
+            <h3>1,387</h3>
+            <p>Total Records</p>
+        </div>
+        <div class="stat-box">
+            <h3>92</h3>
+            <p>Days Coverage</p>
+        </div>
+        <div class="stat-box">
+            <h3>6</h3>
+            <p>Daily Observations</p>
+        </div>
+        <div class="stat-box">
+            <h3>100+</h3>
+            <p>Geographic Locations</p>
+        </div>
+    </div>
+    
+    <p style="background-color: white; padding: 20px; border-radius: 8px; border-left: 4px solid #27ae60;">
+        This catalogue provides comprehensive documentation of the SAMA Intelligence Database system, containing synthetic intelligence data for the 1999 Kargil War scenario. Each database represents a specialized intelligence discipline with correlated multi-source data for realistic military intelligence training and analysis.
+    </p>
+    
+    <!-- ELINT DATABASE -->
+    <div id="elint" class="intelligence-title">
+        🔵 Electronic Intelligence (ELINT) Database<span class="intelligence-badge elint">SIGINT</span>
+    </div>
+    
+    <div class="table-info">
+        <h2>elint</h2>
+        <div class="description">
+            <p><strong>Purpose:</strong> Captures enemy electronic emissions and communications intercepts for signals intelligence analysis.</p>
+            <p><strong>Data Focus:</strong> Radio frequencies (38-52 MHz), emitter types, equipment models (TRC-20H, AN/PRC-77), transmission durations, signal intelligence, direction finding, communications security assessment, unit identification, operational patterns.</p>
+            <p><strong>Primary Key:</strong> id (SERIAL)</p>
+            <p><strong>Record Count:</strong> 274 records</p>
+            <p><strong>Time Coverage:</strong> May 8 - August 7, 1999 (92 days)</p>
+            <p><strong>Geographic Scope:</strong> Kargil sector, high-altitude operations (4200-5353m)</p>
+        </div>
+        
+        <table>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>SERIAL</td>
+                <td>Unique identifier for ELINT record</td>
+            </tr>
+            <tr>
+                <td>observation_date</td>
+                <td>DATE</td>
+                <td>Date of signal intercept</td>
+            </tr>
+            <tr>
+                <td>from_time</td>
+                <td>TIME</td>
+                <td>Start time of signal transmission</td>
+            </tr>
+            <tr>
+                <td>to_time</td>
+                <td>TIME</td>
+                <td>End time of signal transmission</td>
+            </tr>
+            <tr>
+                <td>enemy_unit</td>
+                <td>VARCHAR(255)</td>
+                <td>Identified enemy unit or formation</td>
+            </tr>
+            <tr>
+                <td>location_name</td>
+                <td>VARCHAR(255)</td>
+                <td>Named location of signal source</td>
+            </tr>
+            <tr>
+                <td>range_km</td>
+                <td>VARCHAR(100)</td>
+                <td>Distance from intercept site in kilometers</td>
+            </tr>
+            <tr>
+                <td>emitter_type</td>
+                <td>VARCHAR(255)</td>
+                <td>Type of electronic emitter (COMMUNICATIONS, RADAR)</td>
+            </tr>
+            <tr>
+                <td>emitter_name</td>
+                <td>VARCHAR(255)</td>
+                <td>Specific equipment model (TRC-20H, AN/PRC-77, etc.)</td>
+            </tr>
+            <tr>
+                <td>frequency</td>
+                <td>VARCHAR(100)</td>
+                <td>Signal frequency in MHz</td>
+            </tr>
+            <tr>
+                <td>longitude</td>
+                <td>DOUBLE PRECISION</td>
+                <td>Longitude coordinate (WGS84)</td>
+            </tr>
+            <tr>
+                <td>latitude</td>
+                <td>DOUBLE PRECISION</td>
+                <td>Latitude coordinate (WGS84)</td>
+            </tr>
+            <tr>
+                <td>height</td>
+                <td>DOUBLE PRECISION</td>
+                <td>Elevation above sea level in meters</td>
+            </tr>
+            <tr>
+                <td>easting</td>
+                <td>DOUBLE PRECISION</td>
+                <td>UTM easting coordinate</td>
+            </tr>
+            <tr>
+                <td>northing</td>
+                <td>DOUBLE PRECISION</td>
+                <td>UTM northing coordinate</td>
+            </tr>
+            <tr>
+                <td>zone</td>
+                <td>VARCHAR(50)</td>
+                <td>UTM zone (43S for Kargil region)</td>
+            </tr>
+            <tr>
+                <td>description</td>
+                <td>TEXT</td>
+                <td>Detailed signal analysis and assessment</td>
+            </tr>
+            <tr>
+                <td>fmn_code</td>
+                <td>BIGINT</td>
+                <td>Formation code (10-digit military identifier)</td>
+            </tr>
+            <tr>
+                <td>cmd_name</td>
+                <td>VARCHAR(255)</td>
+                <td>Command level (Northern Command)</td>
+            </tr>
+            <tr>
+                <td>corps_name</td>
+                <td>VARCHAR(255)</td>
+                <td>Corps level (XIV Corps)</td>
+            </tr>
+            <tr>
+                <td>div_name</td>
+                <td>VARCHAR(255)</td>
+                <td>Division level (8 Mountain Division, 3 Infantry Division)</td>
+            </tr>
+            <tr>
+                <td>bde_name</td>
+                <td>VARCHAR(255)</td>
+                <td>Brigade level (70 Infantry Brigade, 79 Mountain Brigade)</td>
+            </tr>
+            <tr>
+                <td>unit_name</td>
+                <td>VARCHAR(255)</td>
+                <td>Unit level (Electronic Warfare Unit 112, SIGINT Company)</td>
+            </tr>
+            <tr>
+                <td>hierarchy_level</td>
+                <td>VARCHAR(100)</td>
+                <td>Military hierarchy level (Brigade, Division, etc.)</td>
+            </tr>
+            <tr>
+                <td>created_at</td>
+                <td>TIMESTAMP</td>
+                <td>Record creation timestamp</td>
+            </tr>
+        </table>
+        
+        <h3>Sample Records (Complete Fields)</h3>
+        <div style="overflow-x: auto;">
+        <table style="font-size: 0.8em; white-space: nowrap;">
+            <tr class="sample-header">
+                <th>id</th>
+                <th>observation_date</th>
+                <th>from_time</th>
+                <th>to_time</th>
+                <th>enemy_unit</th>
+                <th>location_name</th>
+                <th>range_km</th>
+                <th>emitter_type</th>
+                <th>emitter_name</th>
+                <th>frequency</th>
+                <th>longitude</th>
+                <th>latitude</th>
+                <th>height</th>
+                <th>easting</th>
+                <th>northing</th>
+                <th>zone</th>
+                <th>fmn_code</th>
+                <th>unit_name</th>
+                <th>hierarchy_level</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>1999-05-08</td>
+                <td>23:33</td>
+                <td>23:45</td>
+                <td>Pakistani 12th Northern Light Infantry - Alpha Company</td>
+                <td>Tololing Summit</td>
+                <td>11.8</td>
+                <td>COMMUNICATIONS</td>
+                <td>TRC-20H Tactical Radio</td>
+                <td>52.375</td>
+                <td>76.1234</td>
+                <td>34.5678</td>
+                <td>5353.2</td>
+                <td>432156.7</td>
+                <td>3825467.3</td>
+                <td>43S</td>
+                <td>1234567890</td>
+                <td>Electronic Warfare Unit 112</td>
+                <td>Brigade</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>1999-05-08</td>
+                <td>03:30</td>
+                <td>03:42</td>
+                <td>Indian 3 Punjab Regiment reconnaissance patrol</td>
+                <td>Tololing Nala</td>
+                <td>8.2</td>
+                <td>COMMUNICATIONS</td>
+                <td>ANPRC-25 Tactical Radio</td>
+                <td>38.450</td>
+                <td>76.0987</td>
+                <td>34.5234</td>
+                <td>4892.1</td>
+                <td>431789.2</td>
+                <td>3824156.8</td>
+                <td>43S</td>
+                <td>1234567891</td>
+                <td>SIGINT Company</td>
+                <td>Brigade</td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>1999-05-08</td>
+                <td>11:34</td>
+                <td>11:58</td>
+                <td>Pakistani 5th Northern Light Infantry elements</td>
+                <td>The Hump</td>
+                <td>14.3</td>
+                <td>COMMUNICATIONS</td>
+                <td>AN/PRC-77 HF Radio</td>
+                <td>7.825</td>
+                <td>76.2145</td>
+                <td>34.6012</td>
+                <td>5124.7</td>
+                <td>433267.9</td>
+                <td>3826891.4</td>
+                <td>43S</td>
+                <td>1234567892</td>
+                <td>Electronic Intelligence Section</td>
+                <td>Brigade</td>
+            </tr>
+            <tr>
+                <td>4</td>
+                <td>1999-05-09</td>
+                <td>23:32</td>
+                <td>23:47</td>
+                <td>Pakistani 12th NLI - Alpha Company recon section</td>
+                <td>Tololing Western Spur</td>
+                <td>8.7</td>
+                <td>COMMUNICATIONS</td>
+                <td>TRC-20H Tactical Radio</td>
+                <td>52.375</td>
+                <td>76.1089</td>
+                <td>34.5543</td>
+                <td>5201.3</td>
+                <td>432034.6</td>
+                <td>3825123.7</td>
+                <td>43S</td>
+                <td>1234567893</td>
+                <td>Electronic Warfare Unit 112</td>
+                <td>Brigade</td>
+            </tr>
+            <tr>
+                <td>5</td>
+                <td>1999-05-09</td>
+                <td>11:33</td>
+                <td>11:56</td>
+                <td>Pakistani Artillery Forward Observer Team - 12th NLI</td>
+                <td>India Saddle</td>
+                <td>14.2</td>
+                <td>COMMUNICATIONS</td>
+                <td>HF Command Net</td>
+                <td>7.850</td>
+                <td>76.1923</td>
+                <td>34.5789</td>
+                <td>4967.8</td>
+                <td>432945.1</td>
+                <td>3825789.2</td>
+                <td>43S</td>
+                <td>1234567894</td>
+                <td>SIGINT Company</td>
+                <td>Brigade</td>
+            </tr>
+        </table>
+        </div>
+    </div>
+
+    <!-- IMINT DATABASE -->
+    <div id="imint" class="intelligence-title">
+        🔴 Imagery Intelligence (IMINT) Database<span class="intelligence-badge imint">GEOINT</span>
+    </div>
+    
+    <div class="table-info">
+        <h2>imint_data</h2>
+        <div class="description">
+            <p><strong>Purpose:</strong> Analyzes satellite and aerial imagery to provide visual intelligence on enemy positions, movements, and activities.</p>
+            <p><strong>Data Focus:</strong> RISAT-2 SAR imagery (3m resolution), CARTOSAT-3 optical imagery (0.25m resolution), target analysis, personnel counting, equipment identification, construction assessment, change detection analysis.</p>
+            <p><strong>Primary Key:</strong> id (SERIAL)</p>
+            <p><strong>Record Count:</strong> 435 records</p>
+            <p><strong>Image Sources:</strong> RISAT-2, CARTOSAT-3 satellite platforms</p>
+            <p><strong>Resolution Range:</strong> 0.25m - 3m spatial resolution</p>
+        </div>
+        
+        <table>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>SERIAL</td>
+                <td>Unique identifier for IMINT record</td>
+            </tr>
+            <tr>
+                <td>observation_date</td>
+                <td>DATE</td>
+                <td>Date of imagery acquisition</td>
+            </tr>
+            <tr>
+                <td>observation_time</td>
+                <td>TIME</td>
+                <td>Time of satellite pass or image capture</td>
+            </tr>
+            <tr>
+                <td>precedence</td>
+                <td>VARCHAR(50)</td>
+                <td>Priority level (IMMEDIATE, PRIORITY, ROUTINE)</td>
+            </tr>
+            <tr>
+                <td>tgt_type_id</td>
+                <td>INTEGER</td>
+                <td>Foreign key to target_type table</td>
+            </tr>
+            <tr>
+                <td>tgt_sub_type_id</td>
+                <td>INTEGER</td>
+                <td>Foreign key to target_sub_type table</td>
+            </tr>
+            <tr>
+                <td>tgt_cl_id</td>
+                <td>INTEGER</td>
+                <td>Foreign key to target_classification table</td>
+            </tr>
+            <tr>
+                <td>activity_type_id</td>
+                <td>INTEGER</td>
+                <td>Foreign key to activity_type table</td>
+            </tr>
+            <tr>
+                <td>activity_sub_type_id</td>
+                <td>INTEGER</td>
+                <td>Foreign key to activity_sub_type table</td>
+            </tr>
+            <tr>
+                <td>activity_cl_id</td>
+                <td>INTEGER</td>
+                <td>Foreign key to activity_classification table</td>
+            </tr>
+            <tr>
+                <td>incident_type_id</td>
+                <td>INTEGER</td>
+                <td>Foreign key to esitrep_type table</td>
+            </tr>
+            <tr>
+                <td>incident_sub_type_id</td>
+                <td>INTEGER</td>
+                <td>Foreign key to esitrep_sub_type table</td>
+            </tr>
+            <tr>
+                <td>incident_cl_id</td>
+                <td>INTEGER</td>
+                <td>Foreign key to esitrep_classification table</td>
+            </tr>
+            <tr>
+                <td>source_agency</td>
+                <td>VARCHAR(255)</td>
+                <td>Satellite platform (RISAT-2, CARTOSAT-3)</td>
+            </tr>
+            <tr>
+                <td>grading</td>
+                <td>VARCHAR(50)</td>
+                <td>Reliability grading (A1, A2, B1, B2, etc.)</td>
+            </tr>
+            <tr>
+                <td>strength</td>
+                <td>VARCHAR(255)</td>
+                <td>Personnel or equipment strength assessment</td>
+            </tr>
+            <tr>
+                <td>longitude</td>
+                <td>DOUBLE PRECISION</td>
+                <td>Longitude coordinate of observed area</td>
+            </tr>
+            <tr>
+                <td>latitude</td>
+                <td>DOUBLE PRECISION</td>
+                <td>Latitude coordinate of observed area</td>
+            </tr>
+            <tr>
+                <td>height</td>
+                <td>DOUBLE PRECISION</td>
+                <td>Elevation of observed area</td>
+            </tr>
+            <tr>
+                <td>easting</td>
+                <td>DOUBLE PRECISION</td>
+                <td>UTM easting coordinate</td>
+            </tr>
+            <tr>
+                <td>northing</td>
+                <td>DOUBLE PRECISION</td>
+                <td>UTM northing coordinate</td>
+            </tr>
+            <tr>
+                <td>zone</td>
+                <td>VARCHAR(50)</td>
+                <td>UTM zone designation</td>
+            </tr>
+            <tr>
+                <td>input_method</td>
+                <td>VARCHAR(255)</td>
+                <td>Image acquisition method and platform details</td>
+            </tr>
+            <tr>
+                <td>description</td>
+                <td>TEXT</td>
+                <td>Detailed imagery analysis and intelligence assessment</td>
+            </tr>
+            <tr>
+                <td>upload_time</td>
+                <td>TIMESTAMP</td>
+                <td>Time when analysis was completed and uploaded</td>
+            </tr>
+            <tr>
+                <td>fmn_code</td>
+                <td>BIGINT</td>
+                <td>Formation code of analyzing unit</td>
+            </tr>
+            <tr>
+                <td>cmd_name</td>
+                <td>VARCHAR(255)</td>
+                <td>Command level</td>
+            </tr>
+            <tr>
+                <td>corps_name</td>
+                <td>VARCHAR(255)</td>
+                <td>Corps level</td>
+            </tr>
+            <tr>
+                <td>div_name</td>
+                <td>VARCHAR(255)</td>
+                <td>Division level</td>
+            </tr>
+            <tr>
+                <td>bde_name</td>
+                <td>VARCHAR(255)</td>
+                <td>Brigade level</td>
+            </tr>
+            <tr>
+                <td>unit_name</td>
+                <td>VARCHAR(255)</td>
+                <td>Imagery analysis unit</td>
+            </tr>
+            <tr>
+                <td>hierarchy_level</td>
+                <td>VARCHAR(100)</td>
+                <td>Military hierarchy level</td>
+            </tr>
+            <tr>
+                <td>created_at</td>
+                <td>TIMESTAMP</td>
+                <td>Record creation timestamp</td>
+            </tr>
+        </table>
+        
+        <h3>Sample Records (Complete Fields)</h3>
+        <div style="overflow-x: auto;">
+        <table style="font-size: 0.8em; white-space: nowrap;">
+            <tr class="sample-header">
+                <th>id</th>
+                <th>observation_date</th>
+                <th>observation_time</th>
+                <th>precedence</th>
+                <th>tgt_type_id</th>
+                <th>activity_type_id</th>
+                <th>source_agency</th>
+                <th>grading</th>
+                <th>strength</th>
+                <th>longitude</th>
+                <th>latitude</th>
+                <th>height</th>
+                <th>easting</th>
+                <th>northing</th>
+                <th>zone</th>
+                <th>input_method</th>
+                <th>fmn_code</th>
+                <th>unit_name</th>
+                <th>hierarchy_level</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>1999-05-08</td>
+                <td>00:35</td>
+                <td>PRIORITY</td>
+                <td>1</td>
+                <td>2</td>
+                <td>RISAT-2</td>
+                <td>B2</td>
+                <td>company-strength, approximately 130-140 personnel</td>
+                <td>76.1234</td>
+                <td>34.5678</td>
+                <td>5353.2</td>
+                <td>432156.7</td>
+                <td>3825467.3</td>
+                <td>43S</td>
+                <td>RISAT-2 SAR acquisition #RS2-08942</td>
+                <td>2234567890</td>
+                <td>Imagery Analysis Section - 8 Mountain Division</td>
+                <td>Division</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>1999-05-08</td>
+                <td>08:33</td>
+                <td>ROUTINE</td>
+                <td>1</td>
+                <td>1</td>
+                <td>CARTOSAT-3</td>
+                <td>B1</td>
+                <td>company-strength, approximately 85-95 personnel</td>
+                <td>76.0987</td>
+                <td>34.5234</td>
+                <td>4892.1</td>
+                <td>431789.2</td>
+                <td>3824156.8</td>
+                <td>43S</td>
+                <td>Satellite pass #CS3-14257</td>
+                <td>2234567891</td>
+                <td>Geospatial Intelligence Unit</td>
+                <td>Division</td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>1999-05-08</td>
+                <td>12:30</td>
+                <td>PRIORITY</td>
+                <td>1</td>
+                <td>3</td>
+                <td>CARTOSAT-3</td>
+                <td>A2</td>
+                <td>reinforced platoon, approximately 40-50 personnel</td>
+                <td>76.2145</td>
+                <td>34.6012</td>
+                <td>5124.7</td>
+                <td>433267.9</td>
+                <td>3826891.4</td>
+                <td>43S</td>
+                <td>Satellite pass #CS3-14258</td>
+                <td>2234567892</td>
+                <td>Imagery Analysis Section - 3 Infantry Division</td>
+                <td>Division</td>
+            </tr>
+            <tr>
+                <td>4</td>
+                <td>1999-05-09</td>
+                <td>00:38</td>
+                <td>PRIORITY</td>
+                <td>1</td>
+                <td>2</td>
+                <td>RISAT-2</td>
+                <td>B2</td>
+                <td>company-strength, approximately 125-135 personnel</td>
+                <td>76.1089</td>
+                <td>34.5543</td>
+                <td>5201.3</td>
+                <td>432034.6</td>
+                <td>3825123.7</td>
+                <td>43S</td>
+                <td>RISAT-2 SAR acquisition #RS2-08943</td>
+                <td>2234567893</td>
+                <td>Imagery Analysis Section - 8 Mountain Division</td>
+                <td>Division</td>
+            </tr>
+            <tr>
+                <td>5</td>
+                <td>1999-05-09</td>
+                <td>08:35</td>
+                <td>ROUTINE</td>
+                <td>1</td>
+                <td>1</td>
+                <td>CARTOSAT-3</td>
+                <td>A1</td>
+                <td>platoon-strength, approximately 35-40 personnel</td>
+                <td>76.1923</td>
+                <td>34.5789</td>
+                <td>4967.8</td>
+                <td>432945.1</td>
+                <td>3825789.2</td>
+                <td>43S</td>
+                <td>Satellite pass #CS3-14259</td>
+                <td>2234567894</td>
+                <td>Geospatial Intelligence Unit</td>
+                <td>Division</td>
+            </tr>
+        </table>
+        </div>
+    </div>
+
+    <!-- TACINT DATABASE -->
+    <div id="tacint" class="intelligence-title">
+        🟡 Tactical Intelligence (TACINT) Database<span class="intelligence-badge tacint">HUMINT</span>
+    </div>
+    
+    <div class="table-info">
+        <h2>tac_int</h2>
+        <div class="description">
+            <p><strong>Purpose:</strong> Captures ground-based visual reconnaissance and tactical observations for immediate battlefield situational awareness.</p>
+            <p><strong>Data Focus:</strong> Visual observation with Carl Zeiss optics, thermal imaging, target classification, activity analysis, equipment intelligence, BSF observation posts, patrol reports, reconnaissance elements.</p>
+            <p><strong>Primary Key:</strong> id (SERIAL)</p>
+            <p><strong>Record Count:</strong> 518 records</p>
+            <p><strong>Observation Methods:</strong> Carl Zeiss 10x50/20x60 optics, thermal imaging, laser rangefinders</p>
+            <p><strong>Source Types:</strong> BSF Observation Posts, patrol reports, reconnaissance teams</p>
+        </div>
+        
+        <table>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>SERIAL</td>
+                <td>Unique identifier for TACINT record</td>
+            </tr>
+            <tr>
+                <td>observation_date</td>
+                <td>DATE</td>
+                <td>Date of tactical observation</td>
+            </tr>
+            <tr>
+                <td>observation_time</td>
+                <td>TIME</td>
+                <td>Time of observation</td>
+            </tr>
+            <tr>
+                <td>precedence</td>
+                <td>VARCHAR(50)</td>
+                <td>Priority classification (IMMEDIATE, PRIORITY, ROUTINE)</td>
+            </tr>
+            <tr>
+                <td>tgt_type_id</td>
+                <td>INTEGER</td>
+                <td>Foreign key to target_type (PERSONNEL, EQUIPMENT, etc.)</td>
+            </tr>
+            <tr>
+                <td>tgt_sub_type_id</td>
+                <td>INTEGER</td>
+                <td>Foreign key to target_sub_type (INFANTRY, RECONNAISSANCE, etc.)</td>
+            </tr>
+            <tr>
+                <td>tgt_cl_id</td>
+                <td>INTEGER</td>
+                <td>Foreign key to target_classification</td>
+            </tr>
+            <tr>
+                <td>activity_type_id</td>
+                <td>INTEGER</td>
+                <td>Foreign key to activity_type (MOVEMENT, CONSTRUCTION, etc.)</td>
+            </tr>
+            <tr>
+                <td>activity_sub_type_id</td>
+                <td>INTEGER</td>
+                <td>Foreign key to activity_sub_type (DISMOUNTED, DEFENSIVE_POSITION, etc.)</td>
+            </tr>
+            <tr>
+                <td>activity_cl_id</td>
+                <td>INTEGER</td>
+                <td>Foreign key to activity_classification</td>
+            </tr>
+            <tr>
+                <td>incident_type_id</td>
+                <td>INTEGER</td>
+                <td>Foreign key to esitrep_type (BORDER_VIOLATION, FORCE_POSTURING, etc.)</td>
+            </tr>
+            <tr>
+                <td>incident_sub_type_id</td>
+                <td>INTEGER</td>
+                <td>Foreign key to esitrep_sub_type</td>
+            </tr>
+            <tr>
+                <td>incident_cl_id</td>
+                <td>INTEGER</td>
+                <td>Foreign key to esitrep_classification</td>
+            </tr>
+            <tr>
+                <td>source_agency</td>
+                <td>VARCHAR(255)</td>
+                <td>Observing unit (BSF Observation Post, patrol unit, etc.)</td>
+            </tr>
+            <tr>
+                <td>grading</td>
+                <td>VARCHAR(50)</td>
+                <td>Source reliability and information accuracy grading</td>
+            </tr>
+            <tr>
+                <td>strength</td>
+                <td>VARCHAR(255)</td>
+                <td>Estimated personnel or equipment strength</td>
+            </tr>
+            <tr>
+                <td>longitude</td>
+                <td>DOUBLE PRECISION</td>
+                <td>Longitude of observed target</td>
+            </tr>
+            <tr>
+                <td>latitude</td>
+                <td>DOUBLE PRECISION</td>
+                <td>Latitude of observed target</td>
+            </tr>
+            <tr>
+                <td>height</td>
+                <td>DOUBLE PRECISION</td>
+                <td>Elevation of observed target location</td>
+            </tr>
+            <tr>
+                <td>easting</td>
+                <td>DOUBLE PRECISION</td>
+                <td>UTM easting coordinate</td>
+            </tr>
+            <tr>
+                <td>northing</td>
+                <td>DOUBLE PRECISION</td>
+                <td>UTM northing coordinate</td>
+            </tr>
+            <tr>
+                <td>zone</td>
+                <td>VARCHAR(50)</td>
+                <td>UTM zone designation</td>
+            </tr>
+            <tr>
+                <td>input_method</td>
+                <td>VARCHAR(255)</td>
+                <td>Observation method and equipment used</td>
+            </tr>
+            <tr>
+                <td>description</td>
+                <td>TEXT</td>
+                <td>Detailed tactical observation and assessment</td>
+            </tr>
+            <tr>
+                <td>upload_time</td>
+                <td>TIMESTAMP</td>
+                <td>Time when report was processed and uploaded</td>
+            </tr>
+            <tr>
+                <td>fmn_code</td>
+                <td>BIGINT</td>
+                <td>Formation code of observing unit</td>
+            </tr>
+            <tr>
+                <td>cmd_name</td>
+                <td>VARCHAR(255)</td>
+                <td>Command level</td>
+            </tr>
+            <tr>
+                <td>corps_name</td>
+                <td>VARCHAR(255)</td>
+                <td>Corps level</td>
+            </tr>
+            <tr>
+                <td>div_name</td>
+                <td>VARCHAR(255)</td>
+                <td>Division level</td>
+            </tr>
+            <tr>
+                <td>bde_name</td>
+                <td>VARCHAR(255)</td>
+                <td>Brigade level</td>
+            </tr>
+            <tr>
+                <td>unit_name</td>
+                <td>VARCHAR(255)</td>
+                <td>Observing unit name</td>
+            </tr>
+            <tr>
+                <td>hierarchy_level</td>
+                <td>VARCHAR(100)</td>
+                <td>Military hierarchy level</td>
+            </tr>
+            <tr>
+                <td>created_at</td>
+                <td>TIMESTAMP</td>
+                <td>Record creation timestamp</td>
+            </tr>
+        </table>
+        
+        <h3>Sample Records (Complete Fields)</h3>
+        <div style="overflow-x: auto;">
+        <table style="font-size: 0.8em; white-space: nowrap;">
+            <tr class="sample-header">
+                <th>id</th>
+                <th>observation_date</th>
+                <th>observation_time</th>
+                <th>precedence</th>
+                <th>tgt_type_id</th>
+                <th>activity_type_id</th>
+                <th>source_agency</th>
+                <th>grading</th>
+                <th>strength</th>
+                <th>longitude</th>
+                <th>latitude</th>
+                <th>height</th>
+                <th>easting</th>
+                <th>northing</th>
+                <th>zone</th>
+                <th>input_method</th>
+                <th>fmn_code</th>
+                <th>unit_name</th>
+                <th>hierarchy_level</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>1999-05-08</td>
+                <td>00:17</td>
+                <td>IMMEDIATE</td>
+                <td>1</td>
+                <td>2</td>
+                <td>BSF Observation Post Tango-4</td>
+                <td>A2</td>
+                <td>company-strength, 130-140 personnel</td>
+                <td>76.1234</td>
+                <td>34.5678</td>
+                <td>5353.2</td>
+                <td>432156.7</td>
+                <td>3825467.3</td>
+                <td>43S</td>
+                <td>Visual observation with Carl Zeiss 20x60 spotting scope and thermal imaging assist</td>
+                <td>3234567890</td>
+                <td>BSF Intelligence Section - 136 Battalion</td>
+                <td>Battalion</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>1999-05-08</td>
+                <td>04:41</td>
+                <td>ROUTINE</td>
+                <td>1</td>
+                <td>1</td>
+                <td>BSF Observation Post Charlie-2</td>
+                <td>A1</td>
+                <td>platoon-strength, 25-30 personnel</td>
+                <td>76.0987</td>
+                <td>34.5234</td>
+                <td>4892.1</td>
+                <td>431789.2</td>
+                <td>3824156.8</td>
+                <td>43S</td>
+                <td>Visual observation with Carl Zeiss 10x50 binoculars</td>
+                <td>3234567891</td>
+                <td>Reconnaissance Section - 17 Jat Regiment</td>
+                <td>Battalion</td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>1999-05-08</td>
+                <td>08:24</td>
+                <td>PRIORITY</td>
+                <td>1</td>
+                <td>3</td>
+                <td>BSF Observation Post Alpha-6</td>
+                <td>A2</td>
+                <td>company-strength, 85-95 personnel</td>
+                <td>76.2145</td>
+                <td>34.6012</td>
+                <td>5124.7</td>
+                <td>433267.9</td>
+                <td>3826891.4</td>
+                <td>43S</td>
+                <td>Visual observation with Carl Zeiss 10x50 binoculars and laser rangefinder</td>
+                <td>3234567892</td>
+                <td>BSF Intelligence Section - 125 Battalion</td>
+                <td>Battalion</td>
+            </tr>
+            <tr>
+                <td>4</td>
+                <td>1999-05-08</td>
+                <td>12:28</td>
+                <td>PRIORITY</td>
+                <td>1</td>
+                <td>2</td>
+                <td>BSF Observation Post Delta-2</td>
+                <td>A1</td>
+                <td>platoon-strength, 35-40 personnel</td>
+                <td>76.1089</td>
+                <td>34.5543</td>
+                <td>5201.3</td>
+                <td>432034.6</td>
+                <td>3825123.7</td>
+                <td>43S</td>
+                <td>Visual observation with Carl Zeiss 20x60 spotting scope</td>
+                <td>3234567893</td>
+                <td>Reconnaissance Section - 3 Punjab Regiment</td>
+                <td>Battalion</td>
+            </tr>
+            <tr>
+                <td>5</td>
+                <td>1999-05-08</td>
+                <td>16:30</td>
+                <td>ROUTINE</td>
+                <td>1</td>
+                <td>1</td>
+                <td>BSF Observation Post Bravo-4</td>
+                <td>B1</td>
+                <td>section-strength, 15-20 personnel</td>
+                <td>76.1923</td>
+                <td>34.5789</td>
+                <td>4967.8</td>
+                <td>432945.1</td>
+                <td>3825789.2</td>
+                <td>43S</td>
+                <td>Visual observation with Carl Zeiss 10x50 binoculars</td>
+                <td>3234567894</td>
+                <td>Reconnaissance Section - 18 Grenadiers</td>
+                <td>Battalion</td>
+            </tr>
+        </table>
+        </div>
+    </div>
+
+    <!-- ENEMY ACTIVITY DATABASE -->
+    <div id="fusion" class="intelligence-title">
+        🟣 Enemy Activity Database<span class="intelligence-badge fusion">FUSION</span>
+    </div>
+    
+    <div class="table-info">
+        <h2>en_activity</h2>
+        <div class="description">
+            <p><strong>Purpose:</strong> Provides fused multi-sensor intelligence combining various detection systems to track and analyze enemy activities.</p>
+            <p><strong>Data Focus:</strong> Thermal sensor arrays, seismic detection systems, acoustic sensors, target classification, activity analysis, sensor data fusion, bearing measurements, range calculations, confidence assessment.</p>
+            <p><strong>Primary Key:</strong> id (SERIAL)</p>
+            <p><strong>Record Count:</strong> 695 records</p>
+            <p><strong>Sensor Types:</strong> Thermal arrays, seismic sensors, acoustic detectors, electronic sensors</p>
+            <p><strong>Fusion Level:</strong> Multi-source correlation with cross-sensor validation</p>
+        </div>
+        
+        <table>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>SERIAL</td>
+                <td>Unique identifier for enemy activity record</td>
+            </tr>
+            <tr>
+                <td>sensor_type</td>
+                <td>VARCHAR(255)</td>
+                <td>Type of sensor (THERMAL_SENSOR, SEISMIC_SENSOR, ACOUSTIC_SENSOR)</td>
+            </tr>
+            <tr>
+                <td>sensor_id</td>
+                <td>VARCHAR(255)</td>
+                <td>Specific sensor identifier (THERMAL-ARRAY-06, SEISMIC-ARRAY-02)</td>
+            </tr>
+            <tr>
+                <td>tgt_type_id</td>
+                <td>INTEGER</td>
+                <td>Foreign key to target_type (EQUIPMENT, PERSONNEL)</td>
+            </tr>
+            <tr>
+                <td>tgt_sub_type_id</td>
+                <td>INTEGER</td>
+                <td>Foreign key to target_sub_type (ARTILLERY_EQUIPMENT, PERSONNEL_GROUP)</td>
+            </tr>
+            <tr>
+                <td>tgt_cl_id</td>
+                <td>INTEGER</td>
+                <td>Foreign key to target_classification (HEAVY_WEAPONS, INFANTRY)</td>
+            </tr>
+            <tr>
+                <td>activity_type_id</td>
+                <td>INTEGER</td>
+                <td>Foreign key to activity_type (COMBAT, MOVEMENT)</td>
+            </tr>
+            <tr>
+                <td>activity_sub_type_id</td>
+                <td>INTEGER</td>
+                <td>Foreign key to activity_sub_type (INDIRECT_FIRE, FOOT_PATROL)</td>
+            </tr>
+            <tr>
+                <td>activity_cl_id</td>
+                <td>INTEGER</td>
+                <td>Foreign key to activity_classification</td>
+            </tr>
+            <tr>
+                <td>bearing</td>
+                <td>VARCHAR(255)</td>
+                <td>Bearing from sensor to target in degrees</td>
+            </tr>
+            <tr>
+                <td>range_km</td>
+                <td>VARCHAR(255)</td>
+                <td>Range from sensor to target in kilometers</td>
+            </tr>
+            <tr>
+                <td>strength</td>
+                <td>VARCHAR(255)</td>
+                <td>Assessment of target strength or intensity</td>
+            </tr>
+            <tr>
+                <td>longitude</td>
+                <td>DOUBLE PRECISION</td>
+                <td>Calculated longitude of detected activity</td>
+            </tr>
+            <tr>
+                <td>latitude</td>
+                <td>DOUBLE PRECISION</td>
+                <td>Calculated latitude of detected activity</td>
+            </tr>
+            <tr>
+                <td>height</td>
+                <td>DOUBLE PRECISION</td>
+                <td>Elevation of detected activity</td>
+            </tr>
+            <tr>
+                <td>easting</td>
+                <td>DOUBLE PRECISION</td>
+                <td>UTM easting coordinate</td>
+            </tr>
+            <tr>
+                <td>northing</td>
+                <td>DOUBLE PRECISION</td>
+                <td>UTM northing coordinate</td>
+            </tr>
+            <tr>
+                <td>zone</td>
+                <td>VARCHAR(50)</td>
+                <td>UTM zone designation</td>
+            </tr>
+            <tr>
+                <td>input_method</td>
+                <td>VARCHAR(255)</td>
+                <td>Detection method and sensor configuration</td>
+            </tr>
+            <tr>
+                <td>description</td>
+                <td>TEXT</td>
+                <td>Detailed sensor analysis and activity assessment</td>
+            </tr>
+            <tr>
+                <td>upload_time</td>
+                <td>TIMESTAMP</td>
+                <td>Time when analysis was processed</td>
+            </tr>
+            <tr>
+                <td>fmn_code</td>
+                <td>BIGINT</td>
+                <td>Formation code of analyzing unit</td>
+            </tr>
+            <tr>
+                <td>cmd_name</td>
+                <td>VARCHAR(255)</td>
+                <td>Command level</td>
+            </tr>
+            <tr>
+                <td>corps_name</td>
+                <td>VARCHAR(255)</td>
+                <td>Corps level</td>
+            </tr>
+            <tr>
+                <td>div_name</td>
+                <td>VARCHAR(255)</td>
+                <td>Division level</td>
+            </tr>
+            <tr>
+                <td>bde_name</td>
+                <td>VARCHAR(255)</td>
+                <td>Brigade level</td>
+            </tr>
+            <tr>
+                <td>unit_name</td>
+                <td>VARCHAR(255)</td>
+                <td>Intelligence fusion unit</td>
+            </tr>
+            <tr>
+                <td>hierarchy_level</td>
+                <td>VARCHAR(100)</td>
+                <td>Military hierarchy level</td>
+            </tr>
+            <tr>
+                <td>created_at</td>
+                <td>TIMESTAMP</td>
+                <td>Record creation timestamp</td>
+            </tr>
+        </table>
+        
+        <h3>Sample Records (Complete Fields)</h3>
+        <div style="overflow-x: auto;">
+        <table style="font-size: 0.8em; white-space: nowrap;">
+            <tr class="sample-header">
+                <th>id</th>
+                <th>sensor_type</th>
+                <th>sensor_id</th>
+                <th>tgt_type_id</th>
+                <th>activity_type_id</th>
+                <th>bearing</th>
+                <th>range_km</th>
+                <th>strength</th>
+                <th>longitude</th>
+                <th>latitude</th>
+                <th>height</th>
+                <th>easting</th>
+                <th>northing</th>
+                <th>zone</th>
+                <th>input_method</th>
+                <th>fmn_code</th>
+                <th>unit_name</th>
+                <th>hierarchy_level</th>
+                <th>upload_time</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>THERMAL_SENSOR</td>
+                <td>THERMAL-ARRAY-06</td>
+                <td>2</td>
+                <td>4</td>
+                <td>315</td>
+                <td>6.8</td>
+                <td>Multiple high-intensity heat sources, estimated 4-6 heavy weapons systems</td>
+                <td>76.1234</td>
+                <td>34.5678</td>
+                <td>5353.2</td>
+                <td>432156.7</td>
+                <td>3825467.3</td>
+                <td>43S</td>
+                <td>Thermal sensor array detection</td>
+                <td>4234567890</td>
+                <td>Multi-Sensor Intelligence Fusion Center</td>
+                <td>Division</td>
+                <td>1999-06-18 00:24</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>SEISMIC_SENSOR</td>
+                <td>SEISMIC-ARRAY-02</td>
+                <td>2</td>
+                <td>4</td>
+                <td>045</td>
+                <td>8.2</td>
+                <td>Multiple heavy artillery pieces, estimated 4-6 guns</td>
+                <td>76.0987</td>
+                <td>34.5234</td>
+                <td>4892.1</td>
+                <td>431789.2</td>
+                <td>3824156.8</td>
+                <td>43S</td>
+                <td>Seismic sensor detection</td>
+                <td>4234567891</td>
+                <td>Ground Sensor Intelligence Unit</td>
+                <td>Division</td>
+                <td>1999-06-18 00:14</td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>THERMAL_SENSOR</td>
+                <td>THERMAL-ARRAY-07</td>
+                <td>1</td>
+                <td>1</td>
+                <td>315</td>
+                <td>6.8</td>
+                <td>Large personnel group, estimated 80-120 individuals</td>
+                <td>76.2145</td>
+                <td>34.6012</td>
+                <td>5124.7</td>
+                <td>433267.9</td>
+                <td>3826891.4</td>
+                <td>43S</td>
+                <td>Thermal sensor array detection</td>
+                <td>4234567892</td>
+                <td>Multi-Sensor Intelligence Fusion Center</td>
+                <td>Division</td>
+                <td>1999-06-18 04:25</td>
+            </tr>
+            <tr>
+                <td>4</td>
+                <td>ACOUSTIC_SENSOR</td>
+                <td>ACOUSTIC-ARRAY-03</td>
+                <td>2</td>
+                <td>1</td>
+                <td>270</td>
+                <td>12.5</td>
+                <td>Vehicle movement, estimated 6-8 military vehicles</td>
+                <td>76.1089</td>
+                <td>34.5543</td>
+                <td>5201.3</td>
+                <td>432034.6</td>
+                <td>3825123.7</td>
+                <td>43S</td>
+                <td>Acoustic sensor array detection</td>
+                <td>4234567893</td>
+                <td>Acoustic Intelligence Section</td>
+                <td>Division</td>
+                <td>1999-06-18 08:15</td>
+            </tr>
+            <tr>
+                <td>5</td>
+                <td>ELECTRONIC_SENSOR</td>
+                <td>ELECTRONIC-ARRAY-01</td>
+                <td>2</td>
+                <td>5</td>
+                <td>045</td>
+                <td>15.2</td>
+                <td>Communication equipment, estimated 3-4 radio systems</td>
+                <td>76.1923</td>
+                <td>34.5789</td>
+                <td>4967.8</td>
+                <td>432945.1</td>
+                <td>3825789.2</td>
+                <td>43S</td>
+                <td>Electronic sensor detection</td>
+                <td>4234567894</td>
+                <td>Electronic Warfare Intelligence Unit</td>
+                <td>Division</td>
+                <td>1999-06-18 12:30</td>
+            </tr>
+        </table>
+        </div>
+    </div>
+
+    <!-- SITREP DATABASE -->
+    <div id="sitrep" class="intelligence-title">
+        🟢 Situation Report (SITREP) Database<span class="intelligence-badge sitrep">COMMAND</span>
+    </div>
+    
+    <div class="table-info">
+        <h2>e_sitrep_mst</h2>
+        <div class="description">
+            <p><strong>Purpose:</strong> Provides command-level operational situation reports integrating tactical intelligence for strategic decision-making.</p>
+            <p><strong>Data Focus:</strong> Incident classification, force strength assessment, equipment intelligence, operational status, command assessment, brigade-level reporting, multi-source integration, tactical coordination.</p>
+            <p><strong>Primary Key:</strong> id (SERIAL)</p>
+            <p><strong>Record Count:</strong> 464 records</p>
+            <p><strong>Command Level:</strong> Brigade, Battalion, and Division tactical operations centers</p>
+            <p><strong>Assessment Type:</strong> Operational situation reports and force coordination</p>
+        </div>
+        
+        <table>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>SERIAL</td>
+                <td>Unique identifier for situation report</td>
+            </tr>
+            <tr>
+                <td>incident_date</td>
+                <td>DATE</td>
+                <td>Date of reported incident</td>
+            </tr>
+            <tr>
+                <td>incident_time</td>
+                <td>TIME</td>
+                <td>Time of reported incident</td>
+            </tr>
+            <tr>
+                <td>precedence</td>
+                <td>VARCHAR(50)</td>
+                <td>Message precedence (IMMEDIATE, PRIORITY, ROUTINE)</td>
+            </tr>
+            <tr>
+                <td>incident_type_id</td>
+                <td>INTEGER</td>
+                <td>Foreign key to esitrep_type (BORDER_VIOLATION, FORCE_POSTURING, etc.)</td>
+            </tr>
+            <tr>
+                <td>incident_sub_type_id</td>
+                <td>INTEGER</td>
+                <td>Foreign key to esitrep_sub_type (TROOP_INCURSION, EQUIPMENT_BUILDUP, etc.)</td>
+            </tr>
+            <tr>
+                <td>incident_cl_id</td>
+                <td>INTEGER</td>
+                <td>Foreign key to esitrep_classification</td>
+            </tr>
+            <tr>
+                <td>source</td>
+                <td>VARCHAR(255)</td>
+                <td>Reporting unit or source of information</td>
+            </tr>
+            <tr>
+                <td>str_own</td>
+                <td>VARCHAR(255)</td>
+                <td>Own forces strength and disposition</td>
+            </tr>
+            <tr>
+                <td>str_en</td>
+                <td>VARCHAR(255)</td>
+                <td>Enemy forces strength and equipment assessment</td>
+            </tr>
+            <tr>
+                <td>longitude</td>
+                <td>DOUBLE PRECISION</td>
+                <td>Longitude coordinate of incident location</td>
+            </tr>
+            <tr>
+                <td>latitude</td>
+                <td>DOUBLE PRECISION</td>
+                <td>Latitude coordinate of incident location</td>
+            </tr>
+            <tr>
+                <td>height</td>
+                <td>DOUBLE PRECISION</td>
+                <td>Elevation of incident location</td>
+            </tr>
+            <tr>
+                <td>easting</td>
+                <td>DOUBLE PRECISION</td>
+                <td>UTM easting coordinate</td>
+            </tr>
+            <tr>
+                <td>northing</td>
+                <td>DOUBLE PRECISION</td>
+                <td>UTM northing coordinate</td>
+            </tr>
+            <tr>
+                <td>zone</td>
+                <td>VARCHAR(50)</td>
+                <td>UTM zone designation</td>
+            </tr>
+            <tr>
+                <td>incident_status</td>
+                <td>VARCHAR(100)</td>
+                <td>Current status (ONGOING, COMPLETED, ESCALATED)</td>
+            </tr>
+            <tr>
+                <td>description</td>
+                <td>TEXT</td>
+                <td>Detailed situation report and command assessment</td>
+            </tr>
+            <tr>
+                <td>upload_time</td>
+                <td>TIMESTAMP</td>
+                <td>Time when report was submitted to higher headquarters</td>
+            </tr>
+            <tr>
+                <td>fmn_code</td>
+                <td>BIGINT</td>
+                <td>Formation code of reporting unit</td>
+            </tr>
+            <tr>
+                <td>cmd_name</td>
+                <td>VARCHAR(255)</td>
+                <td>Command level</td>
+            </tr>
+            <tr>
+                <td>corps_name</td>
+                <td>VARCHAR(255)</td>
+                <td>Corps level</td>
+            </tr>
+            <tr>
+                <td>div_name</td>
+                <td>VARCHAR(255)</td>
+                <td>Division level</td>
+            </tr>
+            <tr>
+                <td>bde_name</td>
+                <td>VARCHAR(255)</td>
+                <td>Brigade level</td>
+            </tr>
+            <tr>
+                <td>unit_name</td>
+                <td>VARCHAR(255)</td>
+                <td>Reporting unit name</td>
+            </tr>
+            <tr>
+                <td>hierarchy_level</td>
+                <td>VARCHAR(100)</td>
+                <td>Military hierarchy level</td>
+            </tr>
+            <tr>
+                <td>created_at</td>
+                <td>TIMESTAMP</td>
+                <td>Record creation timestamp</td>
+            </tr>
+        </table>
+        
+        <h3>Sample Records (Complete Fields)</h3>
+        <div style="overflow-x: auto;">
+        <table style="font-size: 0.8em; white-space: nowrap;">
+            <tr class="sample-header">
+                <th>id</th>
+                <th>incident_date</th>
+                <th>incident_time</th>
+                <th>precedence</th>
+                <th>incident_type_id</th>
+                <th>source</th>
+                <th>str_own</th>
+                <th>str_en</th>
+                <th>longitude</th>
+                <th>latitude</th>
+                <th>height</th>
+                <th>easting</th>
+                <th>northing</th>
+                <th>zone</th>
+                <th>incident_status</th>
+                <th>fmn_code</th>
+                <th>unit_name</th>
+                <th>hierarchy_level</th>
+                <th>upload_time</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>1999-05-08</td>
+                <td>03:45</td>
+                <td>IMMEDIATE</td>
+                <td>1</td>
+                <td>70 Infantry Brigade Intelligence Section</td>
+                <td>17 Jat Regiment Bravo Company (115 personnel), BSF Battalion 136 observation element (30 personnel)</td>
+                <td>Pakistani 12th Northern Light Infantry Alpha Company reinforced rifle company (140 personnel)</td>
+                <td>76.1234</td>
+                <td>34.5678</td>
+                <td>5353.2</td>
+                <td>432156.7</td>
+                <td>3825467.3</td>
+                <td>43S</td>
+                <td>ONGOING</td>
+                <td>5234567890</td>
+                <td>70 Infantry Brigade Intelligence Section</td>
+                <td>Brigade</td>
+                <td>1999-05-08 04:00</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>1999-05-08</td>
+                <td>08:00</td>
+                <td>PRIORITY</td>
+                <td>2</td>
+                <td>Battalion observation post</td>
+                <td>18 Grenadiers Alpha Company (125 personnel), BSF Battalion 136 reconnaissance section (20 personnel)</td>
+                <td>Pakistani 12th Northern Light Infantry Bravo Company rifle company (90 personnel)</td>
+                <td>76.0987</td>
+                <td>34.5234</td>
+                <td>4892.1</td>
+                <td>431789.2</td>
+                <td>3824156.8</td>
+                <td>43S</td>
+                <td>ONGOING</td>
+                <td>5234567891</td>
+                <td>18 Grenadiers Battalion Intelligence Section</td>
+                <td>Brigade</td>
+                <td>1999-05-08 08:15</td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>1999-05-08</td>
+                <td>10:30</td>
+                <td>PRIORITY</td>
+                <td>3</td>
+                <td>Brigade tactical operations center</td>
+                <td>17 Jat Regiment reconnaissance platoon (40 personnel), 8 Sikh Light Infantry observation team (15 personnel)</td>
+                <td>Pakistani 5th Northern Light Infantry elements reinforced platoon (45 personnel)</td>
+                <td>76.2145</td>
+                <td>34.6012</td>
+                <td>5124.7</td>
+                <td>433267.9</td>
+                <td>3826891.4</td>
+                <td>43S</td>
+                <td>COMPLETED</td>
+                <td>5234567892</td>
+                <td>79 Mountain Brigade Tactical Operations Center</td>
+                <td>Brigade</td>
+                <td>1999-05-08 11:00</td>
+            </tr>
+            <tr>
+                <td>4</td>
+                <td>1999-05-08</td>
+                <td>14:20</td>
+                <td>ROUTINE</td>
+                <td>1</td>
+                <td>Brigade intelligence section</td>
+                <td>3 Punjab Regiment Delta Company (120 personnel), BSF Battalion 125 patrol element (25 personnel)</td>
+                <td>Pakistani 22 Punjab Regiment detachment platoon-strength (35 personnel)</td>
+                <td>76.1089</td>
+                <td>34.5543</td>
+                <td>5201.3</td>
+                <td>432034.6</td>
+                <td>3825123.7</td>
+                <td>43S</td>
+                <td>COMPLETED</td>
+                <td>5234567893</td>
+                <td>70 Infantry Brigade Intelligence Section</td>
+                <td>Brigade</td>
+                <td>1999-05-08 14:45</td>
+            </tr>
+            <tr>
+                <td>5</td>
+                <td>1999-05-08</td>
+                <td>18:45</td>
+                <td>PRIORITY</td>
+                <td>2</td>
+                <td>79 Mountain Brigade tactical operations center</td>
+                <td>18 Grenadiers Charlie Company (110 personnel), Artillery Forward Observer Team (8 personnel)</td>
+                <td>Pakistani Northern Light Infantry elements section-strength (20 personnel)</td>
+                <td>76.1923</td>
+                <td>34.5789</td>
+                <td>4967.8</td>
+                <td>432945.1</td>
+                <td>3825789.2</td>
+                <td>43S</td>
+                <td>ONGOING</td>
+                <td>5234567894</td>
+                <td>79 Mountain Brigade Tactical Operations Center</td>
+                <td>Brigade</td>
+                <td>1999-05-08 19:00</td>
+            </tr>
+        </table>
+        </div>
+    </div>
+    
+    <!-- DATA SOURCES SECTION -->
+    <div id="datasources" class="intelligence-title">
+        📊 Data Source Information<span class="intelligence-badge" style="background-color: #34495e;">METADATA</span>
+    </div>
+    
+    <div class="table-info">
+        <h2>🔵 ELINT Data Sources</h2>
+        <div class="description">
+            <p><strong>Collection Platform:</strong> Electronic Warfare (EW) Units and Signal Intelligence (SIGINT) Companies</p>
+            <p><strong>Primary Equipment:</strong> Direction Finding Arrays, Spectrum Analyzers, Communication Intercept Systems</p>
+            <p><strong>Coverage Area:</strong> Kargil sector including Tololing, Tiger Hill, Point 5353, Batalik sub-sector</p>
+            <p><strong>Frequency Range:</strong> 7.8 - 52.4 MHz (HF/VHF tactical communications)</p>
+        </div>
+        
+        <table>
+            <tr>
+                <th>Source Type</th>
+                <th>Equipment</th>
+                <th>Frequency Coverage</th>
+                <th>Operators</th>
+                <th>Collection Method</th>
+            </tr>
+            <tr>
+                <td>Direction Finding</td>
+                <td>DF Arrays, Interferometer Systems</td>
+                <td>7.8 - 52.4 MHz</td>
+                <td>Electronic Warfare Unit 112, SIGINT Company</td>
+                <td>Automated signal intercept with bearing calculation</td>
+            </tr>
+            <tr>
+                <td>Communication Intelligence</td>
+                <td>Communication Intercept Receivers</td>
+                <td>30 - 88 MHz VHF Band</td>
+                <td>Electronic Intelligence Section</td>
+                <td>Voice and data communication monitoring</td>
+            </tr>
+            <tr>
+                <td>Spectrum Analysis</td>
+                <td>Wideband Spectrum Analyzers</td>
+                <td>2 - 1000 MHz</td>
+                <td>Signal Analysis Team</td>
+                <td>RF signature analysis and emitter identification</td>
+            </tr>
+        </table>
+    </div>
+    
+    <div class="table-info">
+        <h2>🔴 IMINT Data Sources</h2>
+        <div class="description">
+            <p><strong>Satellite Platforms:</strong> RISAT-2 (Radar Imaging), CARTOSAT-3 (Optical Imaging)</p>
+            <p><strong>Resolution Capability:</strong> 0.25m (CARTOSAT-3 Panchromatic) to 3m (RISAT-2 SAR)</p>
+            <p><strong>Revisit Frequency:</strong> 2-3 passes per day during conflict period</p>
+            <p><strong>Analysis Centers:</strong> Defence Image Processing & Analysis Centre (DIPAC)</p>
+        </div>
+        
+        <table>
+            <tr>
+                <th>Platform</th>
+                <th>Sensor Type</th>
+                <th>Resolution</th>
+                <th>Revisit Time</th>
+                <th>Analysis Unit</th>
+            </tr>
+            <tr>
+                <td>RISAT-2</td>
+                <td>C-Band SAR (All-Weather)</td>
+                <td>1m x 1m (Spotlight), 3m x 3m (Stripmap)</td>
+                <td>25 days nominal, 12 hours conflict</td>
+                <td>Imagery Analysis Section - 8 Mountain Division</td>
+            </tr>
+            <tr>
+                <td>CARTOSAT-3</td>
+                <td>Panchromatic + Multispectral</td>
+                <td>0.25m PAN, 1m MS</td>
+                <td>16 days nominal, 8 hours conflict</td>
+                <td>Geospatial Intelligence Unit</td>
+            </tr>
+            <tr>
+                <td>CARTOSAT-2 Series</td>
+                <td>Stereo Panchromatic</td>
+                <td>0.65m PAN</td>
+                <td>4 days with constellation</td>
+                <td>Imagery Analysis Section - 3 Infantry Division</td>
+            </tr>
+        </table>
+    </div>
+    
+    <div class="table-info">
+        <h2>🟡 TACINT Data Sources</h2>
+        <div class="description">
+            <p><strong>Observation Posts:</strong> Border Security Force (BSF) and Army forward observation posts</p>
+            <p><strong>Optical Equipment:</strong> Carl Zeiss 10x50, 20x60 binoculars and spotting scopes</p>
+            <p><strong>Supporting Systems:</strong> Laser rangefinders, thermal imaging, night vision devices</p>
+            <p><strong>Operators:</strong> Trained reconnaissance personnel and BSF observation teams</p>
+        </div>
+        
+        <table>
+            <tr>
+                <th>Source Type</th>
+                <th>Equipment</th>
+                <th>Range Capability</th>
+                <th>Operators</th>
+                <th>Coverage Hours</th>
+            </tr>
+            <tr>
+                <td>Visual Observation</td>
+                <td>Carl Zeiss 10x50 Binoculars</td>
+                <td>5-15 km (terrain dependent)</td>
+                <td>BSF Intelligence Section - 136 Battalion</td>
+                <td>24/7 with shift rotation</td>
+            </tr>
+            <tr>
+                <td>Precision Observation</td>
+                <td>Carl Zeiss 20x60 Spotting Scope</td>
+                <td>10-25 km (clear conditions)</td>
+                <td>Reconnaissance Section - 17 Jat Regiment</td>
+                <td>Daylight hours, limited night capability</td>
+            </tr>
+            <tr>
+                <td>Thermal Imaging</td>
+                <td>Thermal Imaging Devices</td>
+                <td>3-8 km (weather dependent)</td>
+                <td>BSF Intelligence Section - 125 Battalion</td>
+                <td>24/7 all-weather capability</td>
+            </tr>
+            <tr>
+                <td>Laser Ranging</td>
+                <td>Military Laser Rangefinders</td>
+                <td>0.2-20 km (precision measurement)</td>
+                <td>Reconnaissance Section - 3 Punjab Regiment</td>
+                <td>On-demand with visual observation</td>
+            </tr>
+        </table>
+    </div>
+    
+    <div class="table-info">
+        <h2>🟣 Enemy Activity Fusion Sources</h2>
+        <div class="description">
+            <p><strong>Sensor Networks:</strong> Distributed ground-based sensor arrays for multi-source detection</p>
+            <p><strong>Fusion Center:</strong> Multi-Sensor Intelligence Fusion Center with automated correlation</p>
+            <p><strong>Detection Methods:</strong> Thermal, seismic, acoustic, and electronic signature detection</p>
+            <p><strong>Processing:</strong> Real-time fusion algorithms with confidence assessment</p>
+        </div>
+        
+        <table>
+            <tr>
+                <th>Sensor Type</th>
+                <th>Detection Capability</th>
+                <th>Range</th>
+                <th>Processing Unit</th>
+                <th>Fusion Method</th>
+            </tr>
+            <tr>
+                <td>Thermal Sensor Arrays</td>
+                <td>Personnel, vehicles, weapons heat signatures</td>
+                <td>2-15 km</td>
+                <td>Multi-Sensor Intelligence Fusion Center</td>
+                <td>Thermal signature correlation with movement patterns</td>
+            </tr>
+            <tr>
+                <td>Seismic Sensor Arrays</td>
+                <td>Vehicle movement, artillery fire, construction</td>
+                <td>5-25 km</td>
+                <td>Ground Sensor Intelligence Unit</td>
+                <td>Seismic signature analysis with triangulation</td>
+            </tr>
+            <tr>
+                <td>Acoustic Sensor Arrays</td>
+                <td>Vehicle engines, aircraft, weapons fire</td>
+                <td>3-20 km</td>
+                <td>Acoustic Intelligence Section</td>
+                <td>Sound signature recognition with bearing calculation</td>
+            </tr>
+            <tr>
+                <td>Electronic Sensors</td>
+                <td>Radio emissions, radar signals, electronic equipment</td>
+                <td>10-50 km</td>
+                <td>Electronic Warfare Intelligence Unit</td>
+                <td>RF signature correlation with ELINT data</td>
+            </tr>
+        </table>
+    </div>
+    
+    <div class="table-info">
+        <h2>🟢 SITREP Data Sources</h2>
+        <div class="description">
+            <p><strong>Command Centers:</strong> Brigade and Battalion Tactical Operations Centers (TOCs)</p>
+            <p><strong>Reporting Chain:</strong> Company → Battalion → Brigade → Division → Corps</p>
+            <p><strong>Information Flow:</strong> Integration of all intelligence disciplines for operational assessment</p>
+            <p><strong>Decision Support:</strong> Command-level situational awareness for tactical and strategic planning</p>
+        </div>
+        
+        <table>
+            <tr>
+                <th>Source Level</th>
+                <th>Reporting Unit</th>
+                <th>Information Type</th>
+                <th>Processing Center</th>
+                <th>Dissemination</th>
+            </tr>
+            <tr>
+                <td>Brigade Level</td>
+                <td>70 Infantry Brigade Intelligence Section</td>
+                <td>Tactical situation, force strength, enemy assessment</td>
+                <td>70 Infantry Brigade Tactical Operations Center</td>
+                <td>Higher HQ, subordinate units, lateral brigades</td>
+            </tr>
+            <tr>
+                <td>Battalion Level</td>
+                <td>18 Grenadiers Battalion Intelligence Section</td>
+                <td>Unit contact reports, immediate tactical intelligence</td>
+                <td>Battalion Tactical Operations Center</td>
+                <td>Brigade HQ, adjacent battalions</td>
+            </tr>
+            <tr>
+                <td>Multi-Brigade</td>
+                <td>79 Mountain Brigade Tactical Operations Center</td>
+                <td>Sector-wide operations, coordination requirements</td>
+                <td>79 Mountain Brigade Tactical Operations Center</td>
+                <td>Division HQ, Corps intelligence, joint operations</td>
+            </tr>
+            <tr>
+                <td>Specialized Units</td>
+                <td>Artillery Forward Observer Teams</td>
+                <td>Target engagement, battle damage assessment</td>
+                <td>Fire Direction Centers</td>
+                <td>Supported units, artillery command</td>
+            </tr>
+        </table>
+    </div>
+    
+    <footer>
+        <p><strong>SAMA Intelligence Database Catalogue</strong> - Generated on November 19, 2025</p>
+        <p>🛡️ Complete 5-Database Intelligence Ecosystem Documentation</p>
+        <p><em>Synthetic Army Military Analytics - Kargil War 1999 Intelligence Dataset</em></p>
+        <p>📊 <strong>Total Intelligence Records:</strong> 1,387 | <strong>Time Period:</strong> 92 Days | <strong>Geographic Coverage:</strong> Kargil Sector</p>
+    </footer>
+</body>
+</html>
